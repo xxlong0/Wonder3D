@@ -1,2 +1,4 @@
 # Wonder3D
-A cross-domain diffusion model for 3D reconstruction from a single image
+High-Fidelity 3D Reconstruction from a Single Image using Cross-Domain Diffusion Models
+
+![](assets/fig_teaser.png)
