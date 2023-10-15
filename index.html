@@ -91,19 +91,19 @@
                   <source src="video/teaser.mp4" type="video/mp4">
               </video>
 
-			        <br>
 
           <p class="text-left">
-            In this paper, we present a novel diffusion model called SyncDreamer that generates multiview-consistent images from a single-view image. Using pretrained large-scale 2D diffusion models, recent work Zero123 demonstrates the ability to generate plausible novel views from a single-view image of an object. However, maintaining consistency in geometry and colors for the generated images remains a challenge. To address this issue, we propose a synchronized multiview diffusion model that models the joint probability distribution of multiview images, enabling the generation of multiview-consistent images in a single reverse process. SyncDreamer synchronizes the intermediate states of all the generated images at every step of the reverse process through a 3D-aware feature attention mechanism that correlates the corresponding features across different views. Experiments show that SyncDreamer generates images with high consistency across different views, thus making it well-suited for various 3D generation tasks such as novel-view-synthesis, text-to-3D, and image-to-3D.
-          </p>
+            In this work, we introduce Wonder3D, a novel method for generating high-fidelity textured meshes from single-view images with remarkable efficiency.
+            Recent methods based on the Score Distillation Sampling (SDS) loss methods have shown the potential to recover 3D geometry from 2D diffusion priors, but they typically suffer from time-consuming per-shape optimization and inconsistent geometry. 
+            In contrast, certain works directly produce 3D information via fast network inferences, but their results are often of low quality and lack geometric details.
+            To holistically improve the quality, consistency, and efficiency of image-to-3D tasks, we propose a cross-domain diffusion model that generates multi-view normal maps and the corresponding color images. To ensure consistency, we employ a multi-view cross-domain attention mechanism that facilitates information exchange across views and modalities. Lastly, we introduce a geometry-aware normal fusion algorithm that extracts high-quality surfaces from the multi-view 2D representations.
+            Our extensive evaluations demonstrate that our method achieves high-quality reconstruction results, robust generalization, and remarkable efficiency compared to prior works.          </p>
 
           
-          <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-            <source src="video/progress_low.mp4" type="video/mp4">
-        </video>
+          <img src="assets/pipeline.png" alt="Overview" width="100%">
 
         <p class="text-center">
-          Reverse process of SyncDreamer's multiview diffusion.
+          Overview of Wonder3D.
         </p>
         </div>
       </div>
@@ -111,25 +111,9 @@
   </section>
   <br>
 
-  <section>
-    <div class="container">
-      <div class="row">
-        <div class="col-12 text-center">
-            <h2>Results on the Google Scanned Object dataset</h2>
-            <hr style="margin-top:0px">
-            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-                <source src="video/gso.mp4" type="video/mp4">
-            </video>
-          <p class="text-left">
-            
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <br>
 
-  <section>
+
+  <!-- <section>
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
@@ -146,9 +130,9 @@
       </div>
     </div>
   </section>
-  <br>
+  <br> -->
   
-  <section>
+  <!-- <section>
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
@@ -165,10 +149,10 @@
       </div>
     </div>
   </section>
-  <br>
+  <br> -->
 
   
-  <section>
+  <!-- <section>
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
@@ -185,10 +169,10 @@
       </div>
     </div>
   </section>
-  <br>
+  <br> -->
 
   
-  <section>
+  <!-- <section>
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
@@ -205,11 +189,11 @@
       </div>
     </div>
   </section>
-  <br>
+  <br> -->
 
 
   <!-- citing -->
-  <div class="container">
+  <!-- <div class="container">
     <div class="row ">
       <div class="col-12">
           <h3>Citation</h3>
@@ -225,7 +209,7 @@
           <hr>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <footer class="text-center" style="margin-bottom:10px">
       Thanks to <a href="https://lioryariv.github.io/" target="_blank">Lior Yariv</a> for the website template.
