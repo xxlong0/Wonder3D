@@ -1,0 +1,153 @@
+html, body
+{
+    margin:10px 0px;
+    padding:0px;
+    text-align:center;
+    background-color: #EEEEEE;
+}
+
+table
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th,td
+{
+    border: 1px solid black;
+    padding: 5px;
+}
+
+#content 
+{
+    width:auto;
+    max-width:960px;
+    min-width:800px;
+    height: auto !important;
+    height: 100%;
+    min-height: 100%;
+    margin:0 auto;
+    text-align:left;
+    /* border:1px solid #777; */
+    background-color: white;
+    box-shadow: 0px 1px 5px #999;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 10.5pt;
+    /* line-height: 2; */
+    -webkit-text-size-adjust: none;
+}
+
+#content-inner
+{
+    padding:15px 0;
+}
+
+#teaseimg
+{
+    height:auto;
+    width:50%;
+    box-shadow: 0px 0px 10px #444444;
+    border:1px solid #000000;
+}
+
+hr.smooth
+{
+    border: 0;
+    height: 1px;
+    width: 100%;
+    background: #333;
+    background-image: -webkit-linear-gradient(left, #ccc, #333, #ccc); 
+    background-image:    -moz-linear-gradient(left, #ccc, #333, #ccc); 
+    background-image:     -ms-linear-gradient(left, #ccc, #333, #ccc); 
+    background-image:      -o-linear-gradient(left, #ccc, #333, #ccc); 
+}
+
+a:link { color: #0066CC; text-decoration: none }
+a:visited { color: #743399; text-decoration: none }
+a:hover { color: #FF4B33; text-decoration: none }
+a:active { color: #FF4B33; text-decoration: none }
+
+
+/* Some of this has been copied from http://www.mpi-inf.mpg.de/resources/rgbz-camera/ */
+/* Sections of the page. */
+.section { margin: 2em 2em 0.5em 2em; line-height: 130%; }
+.section h2 { margin-top: 0.5em; margin-bottom: 0.2em; }
+
+/* Logo section. */
+.logos { margin: 1.5em 0; text-align: center; margin-top:5px; margin-bottom:10px; }
+.logos img { vertical-align:top; margin:0 1.25em; border:0; }
+
+/* Page header. */
+.head { text-align: center; margin: 0.5em 0; padding: 0.5em 0; background-color:#e9e9e9; text-shadow: 1px 1px 3px #cccccc; }
+.head { color: #111; }
+.head h1 { font-size: 24pt; line-height:27pt; margin: 10px 0; }
+.head h1 a { text-decoration:none; }
+.authors { font-size: 12pt; margin: 0 0 1em 0; }
+.affiliations { font-size: 11pt; margin: -0.5em 0 10pt 0; }
+.venue { font-style:italic; font-size: 12pt; margin: 1em 0 1em 0; }
+.tagline { font-style:italic; font-size: 10.5pt; margin: 1em 0 1em 0; }
+
+/* Specific section styling. */
+.teaser { margin: 1.5em 0; text-align: center; }
+div.content-primary .teaser p img { display: block; float: none; border: 0; margin: 4em auto 1em auto; }
+.abstract { line-height: 130%; }
+.abstract p { margin-top: 0; }
+.downloads ul { margin-top: 0.5em; }
+.list ul { margin-top: 0.5em; }
+.bibtex pre
+{
+    margin-bottom: 0;
+    font-family: Consolas, Monaco, monospace;
+    white-space: pre-wrap; /* CSS 3 */
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* IE 5.5+ */
+    width: 90%;
+    color: #444;
+    padding: 10px;
+    background: #eee;
+    border: 1px solid #ccc;
+    overflow: auto;
+}
+.acknowledgments { line-height: 130%; }
+.acknowledgments p { margin-top: 0; }
+.contact { line-height: 130%; }
+
+.heading { margin: 2.5em 0; text-align: center; }
+.datasets { width: 650px; margin: 3em auto; }
+.datasets ul { padding-bottom: 1em; }
+.dataset { float: left; width: 204px; margin: 5px 10px 15px 0px; text-align: center; }
+.dataset h2 { display: inline; }
+.dataset img { border: 2px solid #222; margin: 0.25em auto; display: block; }
+.backlink { text-align: center; }
+
+/* Display lists in a grid of fixed size. This is useful when lists have associated images. */
+/* Idea from http://blog.mozilla.org/webdev/2009/02/20/cross-browser-inline-block/ */
+li.grid
+{
+    width: auto;
+    height: 60px;
+    /* border: 1px solid #000; */
+    display: -moz-inline-stack;
+    display: inline-block;
+    vertical-align: top;
+    margin: 5px;
+    zoom: 1;
+    *display: inline;
+    _height: 100px;
+}
+/* Formatting for each item in a 2D grid. This is used typically in the downloads section. */
+.griditem
+{
+    font-size: 10pt;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+.griditem img
+{
+    text-align: center;
+    height:50px;
+    width:auto;
+    border: 1px solid #eee;
+    box-shadow: 0px 0px 2px #444444;
+}
