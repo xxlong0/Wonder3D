@@ -21,6 +21,7 @@ conda activate wonder3d
 pip install -r requirements.txt
 ```
 Install tiny-cuda-nn PyTorch extension for mesh extraction: `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
+
 2. Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EgSHPyJAtaJFpV_BjXM3zXwB-UMIrT4v-sQwGgw-coPtIA) and into the root folder.
 
 ### Inference
