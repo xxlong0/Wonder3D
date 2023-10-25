@@ -1,0 +1,42 @@
+pretrained_model_name_or_path: 'lambdalabs/sd-image-variations-diffusers'
+pretrained_unet_path: './ckpts/'
+revision: null
+validation_dataset:
+  root_dir: "./example_images" # the folder path stores testing images
+  num_views: 6
+  bg_color: 'white'
+  img_wh: [256, 256]
+  num_validation_samples: 1000
+  crop_size: 192
+  filepaths: ['owl.png']  # the test image names. leave it empty, test all images in the folder
+
+save_dir: 'outputs/'
+
+pred_type: 'joint'
+seed: 42
+validation_batch_size: 1
+dataloader_num_workers: 64
+
+local_rank: -1
+
+pipe_kwargs:
+  camera_embedding_type: 'e_de_da_sincos'
+  num_views: 6
+
+validation_guidance_scales: [3.0]
+pipe_validation_kwargs:
+  eta: 1.0
+validation_grid_nrow: 6
+
+unet_from_pretrained_kwargs:
+  camera_embedding_type: 'e_de_da_sincos'
+  projection_class_embeddings_input_dim: 10  
+  num_views: 6
+  sample_size: 32
+  zero_init_conv_in: false
+  zero_init_camera_projection: false  
+
+num_views: 6
+camera_embedding_type: 'e_de_da_sincos'
+
+enable_xformers_memory_efficient_attention: true

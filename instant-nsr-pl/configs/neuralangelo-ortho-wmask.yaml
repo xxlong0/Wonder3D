@@ -1,0 +1,145 @@
+name: mesh-ortho-${basename:${dataset.scene}}
+tag: ""
+seed: 42
+
+dataset:
+  name: ortho
+  root_dir: ./outputs/
+  cam_pose_dir: null
+  scene: scene_name
+  imSize: [1024, 1024]  # should use larger res, otherwise the exported mesh has wrong colors
+  camera_type: ortho
+  apply_mask: true
+  camera_params: null
+  view_weights: [1.0, 0.8, 0.2, 1.0, 0.4, 0.7]  #['front', 'front_right', 'right', 'back', 'left', 'front_left']
+  # view_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] 
+
+model:
+  name: neus
+  radius: 1.0
+  num_samples_per_ray: 1024
+  train_num_rays: 256
+  max_train_num_rays: 8192
+  grid_prune: true
+  grid_prune_occ_thre: 0.001
+  dynamic_ray_sampling: true
+  batch_image_sampling: true
+  randomized: true
+  ray_chunk: 2048
+  cos_anneal_end: 20000
+  learned_background: false
+  background_color: black
+  variance:
+    init_val: 0.3
+    modulate: false
+  geometry:
+    name: volume-sdf
+    radius: ${model.radius}
+    feature_dim: 13
+    grad_type: finite_difference
+    finite_difference_eps: progressive
+    isosurface:
+      method: mc
+      resolution: 192
+      chunk: 2097152
+      threshold: 0.
+    xyz_encoding_config:
+      otype: ProgressiveBandHashGrid
+      n_levels: 10 # 12 modify
+      n_features_per_level: 2
+      log2_hashmap_size: 19
+      base_resolution: 32
+      per_level_scale: 1.3195079107728942
+      include_xyz: true
+      start_level: 4
+      start_step: 0
+      update_steps: 1000
+    mlp_network_config:
+      otype: VanillaMLP
+      activation: ReLU
+      output_activation: none
+      n_neurons: 64
+      n_hidden_layers: 1
+      sphere_init: true
+      sphere_init_radius: 0.5
+      weight_norm: true
+  texture:
+    name: volume-radiance
+    input_feature_dim: ${add:${model.geometry.feature_dim},3} # surface normal as additional input
+    dir_encoding_config:
+      otype: SphericalHarmonics
+      degree: 4
+    mlp_network_config:
+      otype: VanillaMLP
+      activation: ReLU
+      output_activation: none
+      n_neurons: 64
+      n_hidden_layers: 2
+    color_activation: sigmoid
+
+system:
+  name: ortho-neus-system
+  loss:
+    lambda_rgb_mse: 0.5
+    lambda_rgb_l1: 0.
+    lambda_mask: 1.0
+    lambda_eikonal: 0.2  # cannot be too large, will cause holes to thin objects
+    lambda_normal: 1.0  # cannot be too large
+    lambda_3d_normal_smooth: 1.0
+    # lambda_curvature: [0, 0.0, 1.e-4, 1000] # topology warmup
+    lambda_curvature: 0.
+    lambda_sparsity: 0.5
+    lambda_distortion: 0.0
+    lambda_distortion_bg: 0.0
+    lambda_opaque: 0.0
+    sparsity_scale: 100.0
+    geo_aware: true
+    rgb_p_ratio: 0.8
+    normal_p_ratio: 0.8
+    mask_p_ratio: 0.9
+  optimizer:
+    name: AdamW
+    args:
+      lr: 0.01
+      betas: [0.9, 0.99]
+      eps: 1.e-15
+    params:
+      geometry:
+        lr: 0.001
+      texture:
+        lr: 0.01
+      variance:
+        lr: 0.001
+  constant_steps: 500
+  scheduler:
+    name: SequentialLR
+    interval: step
+    milestones:
+      - ${system.constant_steps}
+    schedulers:
+      - name: ConstantLR
+        args:
+          factor: 1.0
+          total_iters: ${system.constant_steps}
+      - name: ExponentialLR
+        args:
+          gamma: ${calc_exp_lr_decay_rate:0.1,${sub:${trainer.max_steps},${system.constant_steps}}}
+
+checkpoint:
+  save_top_k: -1
+  every_n_train_steps: ${trainer.max_steps}
+
+export:
+  chunk_size: 2097152
+  export_vertex_color: True
+  ortho_scale: 1.35   #modify
+
+trainer:
+  max_steps: 3000
+  log_every_n_steps: 100
+  num_sanity_val_steps: 0
+  val_check_interval: 3000
+  limit_train_batches: 1.0
+  limit_val_batches: 2
+  enable_progress_bar: true
+  precision: 16
