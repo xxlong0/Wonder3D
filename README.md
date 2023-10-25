@@ -37,7 +37,7 @@ import rembg
 result = rembg.remove(result)
 result.show()
 ```
-3. Run Wonder3d to produce multiview-consistent normal maps and color images.
+3. Run Wonder3d to produce multiview-consistent normal maps and color images. Then you can check the results in the folder ./outputs. (we use rembg to remove backgrounds of the results, but the segmemtations are not always perfect.) 
 ```bash
 accelerate launch --config_file 1gpu.yaml test_mvdiffusion_seq.py \
             --config mvdiffusion-joint-ortho-6views.yaml
@@ -46,7 +46,7 @@ or
 ```bash
 bash run_test.sh
 ```
-You can check the results in the folder ./outputs. 
+
 4. Mesh Extraction
 ```bash
 cd ./instant-nsr-pl
