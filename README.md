@@ -30,14 +30,14 @@ Wonder3D
     ...
 ```
 2. Predict foreground mask as the alpha channel. We use [Clipdrop](https://clipdrop.co/remove-background) to segment the foreground object interactively. 
-You may also use rembg to remove the backgrounds.
+You may also use `rembg` to remove the backgrounds.
 ```bash
 # !pip install rembg
 import rembg
 result = rembg.remove(result)
 result.show()
 ```
-3. Run Wonder3d to produce multiview-consistent normal maps and color images. Then you can check the results in the folder ./outputs. (we use rembg to remove backgrounds of the results, but the segmemtations are not always perfect.) 
+3. Run Wonder3d to produce multiview-consistent normal maps and color images. Then you can check the results in the folder `./outputs`. (we use rembg to remove backgrounds of the results, but the segmemtations are not always perfect.) 
 ```bash
 accelerate launch --config_file 1gpu.yaml test_mvdiffusion_seq.py \
             --config mvdiffusion-joint-ortho-6views.yaml
