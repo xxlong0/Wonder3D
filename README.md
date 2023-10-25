@@ -1,6 +1,6 @@
 # Wonder3D
 Single Image to 3D using Cross-Domain Diffusion
-## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) 
+## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) | [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo)
 
 ![](assets/fig_teaser.png)
 
@@ -8,7 +8,7 @@ Wonder3D reconstructs highly-detailed textured meshes from a single-view image i
 
 ## Schedule
 - [x] Inference code and pretrained models.
-- [ ] Huggingface demo.
+- [x] Huggingface demo.
 - [ ] Training code.
 - [ ] Rendering code for data prepare.
 
