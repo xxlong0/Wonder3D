@@ -9,8 +9,7 @@ Wonder3D reconstructs highly-detailed textured meshes from a single-view image i
 ## Schedule
 - [x] Inference code and pretrained models.
 - [x] Huggingface demo.
-- [ ] Training code.
-- [ ] Rendering code for data prepare.
+- [ ] New model trained on the whole Objaverse dataset.
 
 
 ### Preparation for inference
