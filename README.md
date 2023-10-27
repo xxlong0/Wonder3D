@@ -1,6 +1,6 @@
 # Wonder3D
 Single Image to 3D using Cross-Domain Diffusion
-## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) | [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo)
+## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) | [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo) | [Colab from @camenduru](https://github.com/camenduru/Wonder3D-colab)
 
 ![](assets/fig_teaser.png)
 
@@ -55,6 +55,7 @@ bash run_test.sh
 cd ./instant-nsr-pl
 bash run.sh output_folder_path scene_name
 ```
+Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
 
 ## Citation
 If you find this repository useful in your project, please cite the following work. :)
