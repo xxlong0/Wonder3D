@@ -67,6 +67,14 @@ bash run.sh output_folder_path scene_name
 Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
 
 
+## Common questions
+Q: The evelation and azimuth degrees of the generated views?
+
+A: Unlike that the prior works such as Zero123, SyncDreamer and One2345 adopt object world system, our views are defined in the camera system of the input image. The six views are in the plane with 0 elevation degree in the camera system of the input image. Therefore we don't need to estimate an elevation degree for input image. The azimuth degrees of the six views are 0, 45, 90, 180, -90, -45 respectively.
+
+Q: The focal length of the generated views?
+
+A: We assume the input images are captured by orthographic camera, so the generated views are also in orthographic space. This design enables our model to keep strong generlaization on unreal images, but sometimes it may suffer from focal lens distortions on real-captured images.
 ## Acknowledgement
 We have intensively borrow codes from the following repositories. Many thanks to the authors for sharing their codes.
 - [stable diffusion](https://github.com/CompVis/stable-diffusion)
