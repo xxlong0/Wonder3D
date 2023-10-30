@@ -27,8 +27,8 @@ Our overarching mission is to enhance the speed, affordability, and quality of 3
 conda create -n wonder3d
 conda activate wonder3d
 pip install -r requirements.txt
+pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 ```
-Install tiny-cuda-nn PyTorch extension for mesh extraction: `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
 
 Windows System. Thank @fefespn for his help!
 ```angular2html
