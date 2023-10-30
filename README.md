@@ -66,6 +66,15 @@ bash run.sh output_folder_path scene_name
 ```
 Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
 
+
+## Acknowledgement
+We have intensively borrow codes from the following repositories. Many thanks to the authors for sharing their codes.
+- [stable diffusion](https://github.com/CompVis/stable-diffusion)
+- [zero123](https://github.com/cvlab-columbia/zero123)
+- [NeuS](https://github.com/Totoro97/NeuS)
+- [SyncDreamer](https://github.com/liuyuan-pal/SyncDreamer)
+- [instant-nsr-pl](https://github.com/bennyguo/instant-nsr-pl)
+
 ## Citation
 If you find this repository useful in your project, please cite the following work. :)
 ```
