@@ -6,6 +6,15 @@ Single Image to 3D using Cross-Domain Diffusion
 
 Wonder3D reconstructs highly-detailed textured meshes from a single-view image in only 2 ∼ 3 minutes. Wonder3D first generates consistent multi-view normal maps with corresponding color images via a cross-domain diffusion model, and then leverages a novel normal fusion method to achieve fast and high-quality reconstruction.
 
+## Collaborations
+Our overarching mission is to enhance the speed, affordability, and quality of 3D AIGC, making the creation of 3D content accessible to all. While significant progress has been achieved in the recent years, we acknowledge there is still a substantial journey ahead. We enthusiastically invite you to engage in discussions and explore potential collaborations in any capacity. <span style="color:red">**If you're interested in connecting or partnering with us, please don't hesitate to reach out via email (xxlong@connect.hku.hk)**</span> .
+
+## More features
+- [ ] Detailed tutorial.
+- [ ] GUI demo for mesh reconstruction
+- [ ] Windows support
+- [ ] Docker support
+
 ## Schedule
 - [x] Inference code and pretrained models.
 - [x] Huggingface demo.
@@ -40,7 +49,7 @@ import rembg
 result = rembg.remove(result)
 result.show()
 ```
-3. Run Wonder3d to produce multiview-consistent normal maps and color images. Then you can check the results in the folder `./outputs`. (we use rembg to remove backgrounds of the results, but the segmemtations are not always perfect.) 
+3. Run Wonder3d to produce multiview-consistent normal maps and color images. Then you can check the results in the folder `./outputs`. (we use `rembg` to remove backgrounds of the results, but the segmentations are not always perfect. May consider using [Clipdrop](https://clipdrop.co/remove-background) to get masks for the generated normal maps and color images, since the quality of masks will significantly influence the reconstructed mesh quality.) 
 ```bash
 accelerate launch --config_file 1gpu.yaml test_mvdiffusion_seq.py \
             --config mvdiffusion-joint-ortho-6views.yaml
