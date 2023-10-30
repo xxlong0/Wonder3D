@@ -22,13 +22,24 @@ Our overarching mission is to enhance the speed, affordability, and quality of 3
 
 
 ### Preparation for inference
-1. Install packages in `requirements.txt`. 
+1. Install packages in `requirements.txt`(Linux system).
 ```angular2html
 conda create -n wonder3d
 conda activate wonder3d
 pip install -r requirements.txt
 ```
 Install tiny-cuda-nn PyTorch extension for mesh extraction: `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
+
+Windows System. Thank @fefespn for his help!
+```angular2html
+conda create --name venv_wonder3d -y python=3.8
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
+pip install fire diffusers==0.19.3 transformers bitsandbytes accelerate gradio rembg segment_anything
+pip install einops omegaconf pytorch-lightning==1.9.5 torch_efficient_distloss nerfacc==0.3.3 PyMCubes trimesh
+pip install https://download.pytorch.org/whl/cu118/xformers-0.0.22.post4%2Bcu118-cp38-cp38-manylinux2014_x86_64.whl
+pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+```
 
 2. Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EgSHPyJAtaJFpV_BjXM3zXwB-UMIrT4v-sQwGgw-coPtIA) and into the root folder.
 
