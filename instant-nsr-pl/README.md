@@ -27,10 +27,10 @@ This repository contains a concise and extensible implementation of NeRF and Neu
 
 ## Requirements
 **Note:**
-- To utilize multiresolution hash encoding or fully fused networks provided by tiny-cuda-nn, you should have least an RTX 2080Ti, see [https://github.com/NVlabs/tiny-cuda-nn#requirements](https://github.com/NVlabs/tiny-cuda-nn#requirements) for more details.
+- To utilize multiresolution hash encoding or fully fused networks provided by tiny-cuda-nn, you should have at least an RTX 2080Ti, see [https://github.com/NVlabs/tiny-cuda-nn#requirements](https://github.com/NVlabs/tiny-cuda-nn#requirements) for more details.
 - Multi-GPU training is currently not supported on Windows (see [#4](https://github.com/bennyguo/instant-nsr-pl/issues/4)).
 ### Environments
-- Install PyTorch>=1.10 [here](https://pytorch.org/get-started/locally/) based the package management tool you used and your cuda version (older PyTorch versions may work but have not been tested)
+- Install PyTorch>=1.10 [here](https://pytorch.org/get-started/locally/) based on the package management tool you used and your cuda version (older PyTorch versions may work but have not been tested)
 - Install tiny-cuda-nn PyTorch extension: `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
 - `pip install -r requirements.txt`
 
