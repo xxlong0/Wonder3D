@@ -114,3 +114,7 @@ If you find this repository useful in your project, please cite the following wo
       primaryClass={cs.CV}
 }
 ```
+
+### License
+
+The Wonder3D project is available as open source under the terms of the [ AGPL-3.0 license](https://github.com/xxlong0/Wonder3D/blob/main/LICENSE).
