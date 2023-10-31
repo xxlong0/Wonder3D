@@ -12,7 +12,7 @@ Our overarching mission is to enhance the speed, affordability, and quality of 3
 ## More features
 
 The repo is still being under construction, thanks for your patience. 
-- [ ] Local gradio demo.
+- [x] Local gradio demo.
 - [ ] Detailed tutorial.
 - [ ] GUI demo for mesh reconstruction
 - [ ] Windows support
