@@ -84,6 +84,7 @@ class SingleImageDataset(Dataset):
         img_wh: Tuple[int, int],
         bg_color: str,
         crop_size: int = 224,
+        single_image: Optional[PIL.Image.Image] = None,
         num_validation_samples: Optional[int] = None,
         filepaths: Optional[list] = None,
         cond_type: Optional[str] = None
@@ -92,7 +93,7 @@ class SingleImageDataset(Dataset):
         If you pass in a root directory it will be searched for images
         ending in ext (ext can be a list)
         """
-        self.root_dir = Path(root_dir)
+        # self.root_dir = Path(root_dir)
         self.num_views = num_views
         self.img_wh = img_wh
         self.crop_size = crop_size
@@ -110,34 +111,41 @@ class SingleImageDataset(Dataset):
         
         self.fix_cam_poses = self.load_fixed_poses()  # world2cam matrix
 
-        if filepaths is None:
-            # Get a list of all files in the directory
-            file_list = os.listdir(self.root_dir)
-        else:
-            file_list = filepaths
+        if single_image is None:
+            if filepaths is None:
+                # Get a list of all files in the directory
+                file_list = os.listdir(self.root_dir)
+            else:
+                file_list = filepaths
 
-        if self.cond_type == None:
-            # Filter the files that end with .png or .jpg
-            self.file_list = [file for file in file_list if file.endswith(('.png', '.jpg'))]
-            self.cond_dirs = None
-        else:
-            self.file_list = []
-            self.cond_dirs = []
-            for scene in file_list:
-                self.file_list.append(os.path.join(scene, f"{scene}.png"))
-                if self.cond_type == 'normals':
-                    self.cond_dirs.append(os.path.join(self.root_dir, scene, 'outs'))
-                else:
-                    self.cond_dirs.append(os.path.join(self.root_dir, scene))
+            if self.cond_type == None:
+                # Filter the files that end with .png or .jpg
+                self.file_list = [file for file in file_list if file.endswith(('.png', '.jpg'))]
+                self.cond_dirs = None
+            else:
+                self.file_list = []
+                self.cond_dirs = []
+                for scene in file_list:
+                    self.file_list.append(os.path.join(scene, f"{scene}.png"))
+                    if self.cond_type == 'normals':
+                        self.cond_dirs.append(os.path.join(self.root_dir, scene, 'outs'))
+                    else:
+                        self.cond_dirs.append(os.path.join(self.root_dir, scene))
 
         # load all images
         self.all_images = []
         self.all_alphas = []
         bg_color = self.get_bg_color()
-        for file in self.file_list:
-            image, alpha = self.load_image(os.path.join(self.root_dir, file), bg_color, return_type='pt')
+
+        if single_image is not None:
+            image, alpha = self.load_image(None, bg_color, return_type='pt', Image=single_image)
             self.all_images.append(image)
             self.all_alphas.append(alpha)
+        else:
+            for file in self.file_list:
+                image, alpha = self.load_image(os.path.join(self.root_dir, file), bg_color, return_type='pt')
+                self.all_images.append(image)
+                self.all_alphas.append(alpha)
 
         self.all_images = self.all_images[:num_validation_samples]
         self.all_alphas = self.all_alphas[:num_validation_samples]
@@ -196,9 +204,12 @@ class SingleImageDataset(Dataset):
         return bg_color
     
     
-    def load_image(self, img_path, bg_color, return_type='np'):
+    def load_image(self, img_path, bg_color, return_type='np', Image=None):
         # pil always returns uint8
-        image_input = Image.open(img_path)
+        if Image is None:
+            image_input = Image.open(img_path)
+        else:
+            image_input = Image
         image_size = self.img_wh[0]
 
         if self.crop_size!=-1:
@@ -210,11 +221,11 @@ class SingleImageDataset(Dataset):
             h, w = ref_img_.height, ref_img_.width
             scale = self.crop_size / max(h, w)
             h_, w_ = int(scale * h), int(scale * w)
-            ref_img_ = ref_img_.resize((w_, h_), resample=Image.BICUBIC)
+            ref_img_ = ref_img_.resize((w_, h_))
             image_input = add_margin(ref_img_, size=image_size)
         else:
             image_input = add_margin(image_input, size=max(image_input.height, image_input.width))
-            image_input = image_input.resize((image_size, image_size), resample=Image.BICUBIC)
+            image_input = image_input.resize((image_size, image_size))
 
         # img = scale_and_place_object(img, self.scale_ratio)
         img = np.array(image_input)
@@ -256,7 +267,7 @@ class SingleImageDataset(Dataset):
 
         image = self.all_images[index%len(self.all_images)]
         alpha = self.all_alphas[index%len(self.all_images)]
-        filename = self.file_list[index%len(self.all_images)].replace(".png", "")
+        # filename = self.file_list[index%len(self.all_images)].replace(".png", "")
 
         if self.cond_type != None:
             conds = self.load_conds(self.cond_dirs[index%len(self.all_images)])
@@ -310,7 +321,7 @@ class SingleImageDataset(Dataset):
             'camera_embeddings': camera_embeddings,
             'normal_task_embeddings': normal_task_embeddings,
             'color_task_embeddings': color_task_embeddings,
-            'filename': filename,
+            # 'filename': filename,
         }
 
         if conds is not None:
