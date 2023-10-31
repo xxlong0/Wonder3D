@@ -10,6 +10,9 @@ Wonder3D reconstructs highly-detailed textured meshes from a single-view image i
 Our overarching mission is to enhance the speed, affordability, and quality of 3D AIGC, making the creation of 3D content accessible to all. While significant progress has been achieved in the recent years, we acknowledge there is still a substantial journey ahead. We enthusiastically invite you to engage in discussions and explore potential collaborations in any capacity. <span style="color:red">**If you're interested in connecting or partnering with us, please don't hesitate to reach out via email (xxlong@connect.hku.hk)**</span> .
 
 ## More features
+
+The repo is still being under construction, thanks for your patience. 
+- [ ] Local gradio demo.
 - [ ] Detailed tutorial.
 - [ ] GUI demo for mesh reconstruction
 - [ ] Windows support
