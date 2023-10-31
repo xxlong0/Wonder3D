@@ -297,12 +297,15 @@ def run_demo():
                 with gr.Accordion('Advanced options', open=True):
                     with gr.Row():
                         with gr.Column():
-                            input_processing = gr.CheckboxGroup(['Background Removal'], label='Input Image Preprocessing', value=['Background Removal'])
+                            input_processing = gr.CheckboxGroup(['Background Removal'], 
+                                                                label='Input Image Preprocessing',
+                                                                 value=['Background Removal'],
+                                                                 info='untick this, if masked image with alpha channel')
                         with gr.Column():
                             output_processing = gr.CheckboxGroup(['Background Removal'], label='Output Image Postprocessing', value=[]) 
                     with gr.Row():
                         with gr.Column():
-                            scale_slider = gr.Slider(1, 10, value=3, step=1,
+                            scale_slider = gr.Slider(1, 5, value=3, step=1,
                                                         label='Classifier Free Guidance Scale')
                         with gr.Column():
                             steps_slider = gr.Slider(15, 100, value=50, step=1,
@@ -311,7 +314,7 @@ def run_demo():
                         with gr.Column():
                             seed = gr.Number(42, label='Seed')
                         with gr.Column():
-                            crop_size = gr.Number(192, label='Crop size')
+                            crop_size = gr.Number(210, label='Crop size')
                     # crop_size = 192
                 run_btn = gr.Button('Generate', variant='primary', interactive=True)
         with gr.Row():
@@ -330,7 +333,7 @@ def run_demo():
             normal_6 = gr.Image(interactive=False, height=240, show_label=False)
         
 
-        first_stage = run_btn.click(fn=partial(preprocess, predictor), 
+        run_btn.click(fn=partial(preprocess, predictor), 
                         inputs=[input_image, input_processing], 
                         outputs=[processed_image_highres, processed_image], queue=True
             ).success(fn=partial(run_pipeline, pipeline, cfg), 
