@@ -73,6 +73,11 @@ or
 bash run_test.sh
 ```
 
+#### Interactive inference: run your local gradio demo
+```bash
+python gradio_app.py
+```
+
 4. Mesh Extraction
 ```bash
 cd ./instant-nsr-pl
