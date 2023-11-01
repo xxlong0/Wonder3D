@@ -155,7 +155,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
             # to avoid doing two forward passes
             image_embeddings = torch.cat([negative_prompt_embeds, image_embeddings])
         
-        image_pt = torch.stack([TF.to_tensor(img) for img in image_pil], dim=0).to(device)
+        image_pt = torch.stack([TF.to_tensor(img) for img in image_pil], dim=0).to(device).to(dtype)
         image_pt = image_pt * 2.0 - 1.0
         image_latents = self.vae.encode(image_pt).latent_dist.mode() * self.vae.config.scaling_factor
         # Note: repeat differently from official pipelines

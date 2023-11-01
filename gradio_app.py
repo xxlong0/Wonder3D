@@ -49,6 +49,9 @@ _DESCRIPTION = '''
 Generate consistent multi-view normals maps and color images.
 <a style="display:inline-block; margin-left: .5em" href='https://github.com/xxlong0/Wonder3D/'><img src='https://img.shields.io/github/stars/xxlong0/Wonder3D?style=social' /></a>
 </div>
+<div>
+The demo does not include the mesh reconstruction part, please visit <a href="https://github.com/xxlong0/Wonder3D/">our github repo</a> to get a textured mesh.
+</div>
 '''
 _GPU_ID = 0
 
@@ -166,7 +169,7 @@ def load_wonder3d_pipeline(cfg):
 from mvdiffusion.data.single_image_dataset import SingleImageDataset
 def prepare_data(single_image, crop_size):
     dataset = SingleImageDataset(
-        root_dir = None,
+        root_dir = '',
         num_views = 6,
         img_wh=[256, 256],
         bg_color='white',
@@ -314,7 +317,7 @@ def run_demo():
                         with gr.Column():
                             seed = gr.Number(42, label='Seed')
                         with gr.Column():
-                            crop_size = gr.Number(210, label='Crop size')
+                            crop_size = gr.Number(192, label='Crop size')
                     # crop_size = 192
                 run_btn = gr.Button('Generate', variant='primary', interactive=True)
         with gr.Row():
