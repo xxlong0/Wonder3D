@@ -93,7 +93,7 @@ class SingleImageDataset(Dataset):
         If you pass in a root directory it will be searched for images
         ending in ext (ext can be a list)
         """
-        # self.root_dir = Path(root_dir)
+        self.root_dir = Path(root_dir) if single_image is None else None
         self.num_views = num_views
         self.img_wh = img_wh
         self.crop_size = crop_size
