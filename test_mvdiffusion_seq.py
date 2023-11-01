@@ -47,6 +47,8 @@ from einops import rearrange
 from rembg import remove
 import pdb
 
+weight_dtype = torch.float16
+
 
 @dataclass
 class TestConfig:
@@ -257,7 +259,7 @@ def main(
 
             xformers_version = version.parse(xformers.__version__)
             if xformers_version == version.parse("0.0.16"):
-                logger.warn(
+                print(
                     "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
                 )
             unet.enable_xformers_memory_efficient_attention()
@@ -276,7 +278,7 @@ def main(
         validation_dataset, batch_size=cfg.validation_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
     )
 
-    weight_dtype = torch.float32
+
     device = 'cuda'
     # Move text_encode and vae to gpu and cast to weight_dtype
     image_encoder.to(device, dtype=weight_dtype)

@@ -93,7 +93,7 @@ class SingleImageDataset(Dataset):
         If you pass in a root directory it will be searched for images
         ending in ext (ext can be a list)
         """
-        self.root_dir = Path(root_dir) if single_image is None else None
+        self.root_dir = root_dir
         self.num_views = num_views
         self.img_wh = img_wh
         self.crop_size = crop_size
@@ -118,19 +118,10 @@ class SingleImageDataset(Dataset):
             else:
                 file_list = filepaths
 
-            if self.cond_type == None:
-                # Filter the files that end with .png or .jpg
-                self.file_list = [file for file in file_list if file.endswith(('.png', '.jpg'))]
-                self.cond_dirs = None
-            else:
-                self.file_list = []
-                self.cond_dirs = []
-                for scene in file_list:
-                    self.file_list.append(os.path.join(scene, f"{scene}.png"))
-                    if self.cond_type == 'normals':
-                        self.cond_dirs.append(os.path.join(self.root_dir, scene, 'outs'))
-                    else:
-                        self.cond_dirs.append(os.path.join(self.root_dir, scene))
+            # Filter the files that end with .png or .jpg
+            self.file_list = [file for file in file_list if file.endswith(('.png', '.jpg'))]
+        else:
+            self.file_list = None
 
         # load all images
         self.all_images = []
@@ -138,11 +129,12 @@ class SingleImageDataset(Dataset):
         bg_color = self.get_bg_color()
 
         if single_image is not None:
-            image, alpha = self.load_image(None, bg_color, return_type='pt', Image=single_image)
+            image, alpha = self.load_image(None, bg_color, return_type='pt', Imagefile=single_image)
             self.all_images.append(image)
             self.all_alphas.append(alpha)
         else:
             for file in self.file_list:
+                print(os.path.join(self.root_dir, file))
                 image, alpha = self.load_image(os.path.join(self.root_dir, file), bg_color, return_type='pt')
                 self.all_images.append(image)
                 self.all_alphas.append(alpha)
@@ -204,12 +196,12 @@ class SingleImageDataset(Dataset):
         return bg_color
     
     
-    def load_image(self, img_path, bg_color, return_type='np', Image=None):
+    def load_image(self, img_path, bg_color, return_type='np', Imagefile=None):
         # pil always returns uint8
-        if Image is None:
+        if Imagefile is None:
             image_input = Image.open(img_path)
         else:
-            image_input = Image
+            image_input = Imagefile
         image_size = self.img_wh[0]
 
         if self.crop_size!=-1:
@@ -245,20 +237,6 @@ class SingleImageDataset(Dataset):
         
         return img, alpha
     
-    def load_conds(self, directory):
-        assert self.crop_size == -1
-        image_size = self.img_wh[0]
-        conds = []
-        for view in self.view_types:
-            cond_file = f"{self.cond_type}_000_{view}.png"
-            image_input = Image.open(os.path.join(directory, cond_file))
-            image_input = image_input.resize((image_size, image_size), resample=Image.BICUBIC)
-            image_input = np.array(image_input)[:, :, :3] / 255.
-            conds.append(image_input)
-
-        conds = np.stack(conds, axis=0)
-        conds = torch.from_numpy(conds).permute(0, 3, 1, 2)  # B, 3, H, W
-        return conds
 
     def __len__(self):
         return len(self.all_images)
@@ -267,12 +245,10 @@ class SingleImageDataset(Dataset):
 
         image = self.all_images[index%len(self.all_images)]
         alpha = self.all_alphas[index%len(self.all_images)]
-        # filename = self.file_list[index%len(self.all_images)].replace(".png", "")
-
-        if self.cond_type != None:
-            conds = self.load_conds(self.cond_dirs[index%len(self.all_images)])
+        if self.file_list is not None:
+            filename = self.file_list[index%len(self.all_images)].replace(".png", "")
         else:
-            conds = None
+            filename = 'null'
 
         cond_w2c = self.fix_cam_poses['front']
 
@@ -321,11 +297,8 @@ class SingleImageDataset(Dataset):
             'camera_embeddings': camera_embeddings,
             'normal_task_embeddings': normal_task_embeddings,
             'color_task_embeddings': color_task_embeddings,
-            # 'filename': filename,
+            'filename': filename,
         }
-
-        if conds is not None:
-            out['conds'] = conds
 
         return out
 
