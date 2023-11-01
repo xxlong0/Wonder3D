@@ -33,7 +33,7 @@ pip install -r requirements.txt
 pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 ```
 
-Windows System. Thank @fefespn for his help! (Not tested. May refer to issues #12 #29 )
+Windows System. Thank @fefespn for his help! (Not tested. May refer to issues [#12](https://github.com/xxlong0/Wonder3D/issues/12) [#29](https://github.com/xxlong0/Wonder3D/issues/29) )
 ```angular2html
 conda create --name venv_wonder3d -y python=3.8
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
