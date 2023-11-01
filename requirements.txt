@@ -28,5 +28,4 @@ torch_efficient_distloss
 tensorboard
 rembg
 segment_anything
-streamlit==1.22.0
 gradio
