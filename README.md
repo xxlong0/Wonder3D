@@ -79,12 +79,25 @@ python gradio_app.py
 ```
 
 4. Mesh Extraction
+
+#### Instant-NSR Mesh Extraction
+
 ```bash
 cd ./instant-nsr-pl
 bash run.sh output_folder_path scene_name
 ```
 Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
 
+#### NeuS-based Mesh Extraction
+
+Since there are many complaints about the Windows setup of instant-nsr-pl, we provide the NeuS-based reconstruction, which may get rid of the requirement problems. 
+
+NeuS consumes less GPU memory and favors smooth surfaces without parameters tuning. However, NeuS consumes more times and its texture may be less sharp. If you are not sensitive to time, we recommend NeuS for optimization due to its robustness.
+
+```bash
+cd ./NeuS
+bash run.sh output_folder_path scene_name 
+```
 
 ## Common questions
 Q: The evelation and azimuth degrees of the generated views?
