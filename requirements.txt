@@ -28,4 +28,4 @@ torch_efficient_distloss
 tensorboard
 rembg
 segment_anything
-gradio
+gradio==3.50.2
