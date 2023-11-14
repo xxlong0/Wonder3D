@@ -32,14 +32,23 @@ from einops import rearrange
 import numpy as np
 
 
-
-
-
 def save_image(tensor):
     ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
     # pdb.set_trace()
     im = Image.fromarray(ndarr)
     return ndarr
+
+def save_image_to_disk(tensor, fp):
+    ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
+    # pdb.set_trace()
+    im = Image.fromarray(ndarr)
+    im.save(fp)
+    return ndarr
+
+
+def save_image_numpy(ndarr, fp):
+    im = Image.fromarray(ndarr)
+    im.save(fp)
 
 weight_dtype = torch.float16
 
@@ -179,9 +188,12 @@ def prepare_data(single_image, crop_size):
     return dataset[0]
 
 
-def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_size):
+def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_size, chk_group=None):
     import pdb
     # pdb.set_trace()
+
+    if chk_group is not None:
+        write_image = "Write Results" in chk_group
 
     batch = prepare_data(single_image, crop_size)
 
@@ -213,6 +225,32 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     bsz = out.shape[0] // 2
     normals_pred = out[:bsz]
     images_pred = out[bsz:]
+    num_views = 6
+    if write_image:
+        VIEWS = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
+        cur_dir = os.path.join("./outputs", f"cropsize-{crop_size}-cfg{guidance_scale:.1f}")
+
+        scene = 'scene'
+        scene_dir = os.path.join(cur_dir, scene)
+        normal_dir = os.path.join(scene_dir, "normals")
+        masked_colors_dir = os.path.join(scene_dir, "masked_colors")
+        os.makedirs(normal_dir, exist_ok=True)
+        os.makedirs(masked_colors_dir, exist_ok=True)
+        for j in range(num_views):
+            view = VIEWS[j]
+            normal = normals_pred[j]
+            color = images_pred[j]
+
+            normal_filename = f"normals_000_{view}.png"
+            rgb_filename = f"rgb_000_{view}.png"
+            normal = save_image_to_disk(normal, os.path.join(normal_dir, normal_filename))
+            color = save_image_to_disk(color, os.path.join(scene_dir, rgb_filename))
+
+            rm_normal = remove(normal)
+            rm_color = remove(color)
+
+            save_image_numpy(rm_normal, os.path.join(scene_dir, normal_filename))
+            save_image_numpy(rm_color, os.path.join(masked_colors_dir, rgb_filename))
 
     normals_pred = [save_image(normals_pred[i]) for i in range(bsz)]
     images_pred = [save_image(images_pred[i]) for i in range(bsz)]
@@ -305,7 +343,7 @@ def run_demo():
                                                                  value=['Background Removal'],
                                                                  info='untick this, if masked image with alpha channel')
                         with gr.Column():
-                            output_processing = gr.CheckboxGroup(['Background Removal'], label='Output Image Postprocessing', value=[]) 
+                            output_processing = gr.CheckboxGroup(['Write Results'], label='write the results in ./outputs folder', value=['Write Results']) 
                     with gr.Row():
                         with gr.Column():
                             scale_slider = gr.Slider(1, 5, value=3, step=1,
@@ -340,7 +378,7 @@ def run_demo():
                         inputs=[input_image, input_processing], 
                         outputs=[processed_image_highres, processed_image], queue=True
             ).success(fn=partial(run_pipeline, pipeline, cfg), 
-                        inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size],
+                        inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
                         outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6]
                         )
         

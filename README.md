@@ -6,6 +6,23 @@ Single Image to 3D using Cross-Domain Diffusion
 
 Wonder3D reconstructs highly-detailed textured meshes from a single-view image in only 2 ∼ 3 minutes. Wonder3D first generates consistent multi-view normal maps with corresponding color images via a cross-domain diffusion model, and then leverages a novel normal fusion method to achieve fast and high-quality reconstruction.
 
+## Share your reconstructions!
+If you get any interesting reconstructions and would like to share with others, welcome to upload the input image and reconstructed mesh to this [onedrive repo](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EvIYSlYlkwNJpQkEnlD7uHsB-C6zU1oSNjqAGz_K7VGG2Q). 
+
+
+Data structure:
+```
+{yourname}/{scenename}-input.png  # the input image
+{yourname}/{scenename}-screenshot.png  # a front view screenshot of the reconstructed mesh
+{yourname}/{scenename}-mesh.obj  # the reconstructed mesh, .obj or .ply
+
+# example: 
+# create a folder name `xxlong`, then upload the files to the folder
+xxlong/apple-input.png
+xxlong/apple-screenshot.png
+xxlong/apple-mesh.obj
+```
+
 ## Collaborations
 Our overarching mission is to enhance the speed, affordability, and quality of 3D AIGC, making the creation of 3D content accessible to all. While significant progress has been achieved in the recent years, we acknowledge there is still a substantial journey ahead. We enthusiastically invite you to engage in discussions and explore potential collaborations in any capacity. <span style="color:red">**If you're interested in connecting or partnering with us, please don't hesitate to reach out via email (xxlong@connect.hku.hk)**</span> .
 
