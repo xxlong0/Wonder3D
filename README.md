@@ -132,6 +132,9 @@ We have intensively borrow codes from the following repositories. Many thanks to
 - [SyncDreamer](https://github.com/liuyuan-pal/SyncDreamer)
 - [instant-nsr-pl](https://github.com/bennyguo/instant-nsr-pl)
 
+## License
+Wonder3D is under [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html), so any downstream solution and products (including cloud services) that include wonder3d code or a trained model (both pretrained or custom trained) inside it should be open-sourced to comply with the AGPL conditions. If you have any questions about the usage of Wonder3D, please contact us first.
+
 ## Citation
 If you find this repository useful in your project, please cite the following work. :)
 ```
