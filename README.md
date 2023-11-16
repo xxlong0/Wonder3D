@@ -1,4 +1,4 @@
-# Wonder3D 
+# Wonder3D - Windows
 Single Image to 3D using Cross-Domain Diffusion
 
 **We have received numerous requests from non-professionals using Window who are eager to try out our project. 
@@ -19,15 +19,14 @@ As a result, we have provided a Windows version and have included detailed setup
 
 1. Use  ``nvidia-smi`` to check the version of your CUDA driver. 
 2. Download the corresponding [cuda tookit installer](https://developer.nvidia.com/cuda-toolkit-archive) based your driver version.
-
 3. Install CUDA using the downloaded exe file (Default settings are recommended).
-
+4. Confirm that CUDA_PATH is successfully added into System Environment Variable (Done automatically if installation succeeds).
 
 ### Install PyTorch 
 Find the correct pytorch installation commands [here](https://pytorch.org/get-started/previous-versions/) based on your CUDA version.
 
 
-Here in an example:
+Here is an example:
 ```bash
 pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 ```
@@ -39,7 +38,7 @@ If you do not have git installed, use ```conda install git``` to install git fir
 
 2. Clone the repository.
 ```bash
-git clone https://github.com/xxlong0/Wonder3D.git
+git clone https://github.com/xxlong0/Wonder3D.git -b main-windows
 ```
 
 3. Install the dependencies.
@@ -85,7 +84,7 @@ cd ./instant-nsr-pl
 bash run.sh output_folder_path scene_name
 ```
 
-# Frequently Encountered Issues.
+## Frequently Encountered Issues on Windows.
 1. OSError: [Errno 22] Invalid argument | Python\lib\multiprocessing\reduction.py", line 60, in dump
 ForkingPickler(file, protocol).dump(obj)
 
