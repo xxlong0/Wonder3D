@@ -51,16 +51,16 @@ class PinholeNeuSSystem(BaseSystem):
             index = batch['index']
         else:
             if self.config.model.batch_image_sampling:
-                index = torch.randint(0, len(self.dataset.all_images), size=(self.train_num_rays,), device=self.dataset.all_images.device)
+                index = torch.randint(0, len(self.dataset.all_images), size=(self.train_num_rays,))
             else:
-                index = torch.randint(0, len(self.dataset.all_images), size=(1,), device=self.dataset.all_images.device)
+                index = torch.randint(0, len(self.dataset.all_images), size=(1,))
         if stage in ['train']:
             c2w = self.dataset.all_c2w[index]
             x = torch.randint(
-                0, self.dataset.w, size=(self.train_num_rays,), device=self.dataset.all_images.device
+                0, self.dataset.w, size=(self.train_num_rays,)
             )
             y = torch.randint(
-                0, self.dataset.h, size=(self.train_num_rays,), device=self.dataset.all_images.device
+                0, self.dataset.h, size=(self.train_num_rays,)
             )
             if self.dataset.directions.ndim == 3: # (H, W, 3)
                 directions = self.dataset.directions[y, x]
@@ -69,11 +69,11 @@ class PinholeNeuSSystem(BaseSystem):
                 directions = self.dataset.directions[index, y, x]
                 # origins = self.dataset.origins[index, y, x]
             rays_o, rays_d = get_rays(directions, c2w)
-            rgb = self.dataset.all_images[index, y, x].view(-1, self.dataset.all_images.shape[-1]).to(self.rank)
-            normal = self.dataset.all_normals_world[index, y, x].view(-1, self.dataset.all_normals_world.shape[-1]).to(self.rank)
-            fg_mask = self.dataset.all_fg_masks[index, y, x].view(-1).to(self.rank)
-            rgb_mask = self.dataset.all_rgb_masks[index, y, x].view(-1).to(self.rank)
-            view_weights = self.dataset.view_weights[index, y, x].view(-1).to(self.rank)
+            rgb = self.dataset.all_images[index, y, x].view(-1, self.dataset.all_images.shape[-1])
+            normal = self.dataset.all_normals_world[index, y, x].view(-1, self.dataset.all_normals_world.shape[-1])
+            fg_mask = self.dataset.all_fg_masks[index, y, x].view(-1)
+            rgb_mask = self.dataset.all_rgb_masks[index, y, x].view(-1)
+            view_weights = self.dataset.view_weights[index, y, x].view(-1)
         else:
             c2w = self.dataset.all_c2w[index][0]
             if self.dataset.directions.ndim == 3: # (H, W, 3)
@@ -83,10 +83,10 @@ class PinholeNeuSSystem(BaseSystem):
                 directions = self.dataset.directions[index][0] 
                 # origins = self.dataset.origins[index][0]
             rays_o, rays_d = get_rays(directions, c2w)
-            rgb = self.dataset.all_images[index].view(-1, self.dataset.all_images.shape[-1]).to(self.rank)
-            normal = self.dataset.all_normals_world[index].view(-1, self.dataset.all_images.shape[-1]).to(self.rank)
-            fg_mask = self.dataset.all_fg_masks[index].view(-1).to(self.rank)
-            rgb_mask = self.dataset.all_rgb_masks[index].view(-1).to(self.rank)
+            rgb = self.dataset.all_images[index].view(-1, self.dataset.all_images.shape[-1])
+            normal = self.dataset.all_normals_world[index].view(-1, self.dataset.all_images.shape[-1])
+            fg_mask = self.dataset.all_fg_masks[index].view(-1)
+            rgb_mask = self.dataset.all_rgb_masks[index].view(-1)
             view_weights = None
 
         cosines = self.cos(rays_d, normal)
@@ -108,13 +108,13 @@ class PinholeNeuSSystem(BaseSystem):
             rgb = rgb * fg_mask[...,None] + self.model.background_color * (1 - fg_mask[...,None])
         
         batch.update({
-            'rays': rays,
-            'rgb': rgb,
-            'normal': normal,
-            'fg_mask': fg_mask,
-            'rgb_mask': rgb_mask,
-            'cosines': cosines,
-            'view_weights': view_weights
+            'rays': rays.to(self.device),
+            'rgb': rgb.to(self.device),
+            'normal': normal.to(self.device),
+            'fg_mask': fg_mask.to(self.device),
+            'rgb_mask': rgb_mask.to(self.device),
+            'cosines': cosines.to(self.device),
+            'view_weights': view_weights.to(self.device)
         })      
     
     def training_step(self, batch, batch_idx):

@@ -188,7 +188,7 @@ class OrthoDatasetBase():
         
         self.view_types = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
 
-        self.view_weights = torch.from_numpy(np.array(self.config.view_weights)).float().to(self.rank).view(-1)
+        self.view_weights = torch.from_numpy(np.array(self.config.view_weights)).float().view(-1)
         self.view_weights = self.view_weights.view(-1,1,1).repeat(1, self.h, self.w)
 
         if self.config.cam_pose_dir is None:
@@ -213,14 +213,14 @@ class OrthoDatasetBase():
         self.origins = torch.from_numpy(self.origins_np)
         self.directions = torch.from_numpy(self.directions_np)
 
-        self.directions = self.directions.float().to(self.rank)
-        self.origins = self.origins.float().to(self.rank)
-        self.all_rgb_masks = self.all_rgb_masks.float().to(self.rank)
+        self.directions = self.directions.float()
+        self.origins = self.origins.float()
+        self.all_rgb_masks = self.all_rgb_masks.float()
         self.all_c2w, self.all_images, self.all_fg_masks, self.all_normals_world = \
-            self.all_c2w.float().to(self.rank), \
-            self.all_images.float().to(self.rank), \
-            self.all_fg_masks.float().to(self.rank), \
-            self.all_normals_world.float().to(self.rank)
+            self.all_c2w.float(), \
+            self.all_images.float(), \
+            self.all_fg_masks.float(), \
+            self.all_normals_world.float()
         
 
 class OrthoDataset(Dataset, OrthoDatasetBase):
@@ -268,7 +268,7 @@ class OrthoDataModule(pl.LightningDataModule):
         sampler = None
         return DataLoader(
             dataset, 
-            num_workers=os.cpu_count(), 
+            num_workers=os.cpu_count(),
             batch_size=batch_size,
             pin_memory=True,
             sampler=sampler

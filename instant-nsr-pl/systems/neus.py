@@ -36,24 +36,24 @@ class NeuSSystem(BaseSystem):
             index = batch['index']
         else:
             if self.config.model.batch_image_sampling:
-                index = torch.randint(0, len(self.dataset.all_images), size=(self.train_num_rays,), device=self.dataset.all_images.device)
+                index = torch.randint(0, len(self.dataset.all_images), size=(self.train_num_rays,))
             else:
-                index = torch.randint(0, len(self.dataset.all_images), size=(1,), device=self.dataset.all_images.device)
+                index = torch.randint(0, len(self.dataset.all_images), size=(1,))
         if stage in ['train']:
             c2w = self.dataset.all_c2w[index]
             x = torch.randint(
-                0, self.dataset.w, size=(self.train_num_rays,), device=self.dataset.all_images.device
+                0, self.dataset.w, size=(self.train_num_rays,)
             )
             y = torch.randint(
-                0, self.dataset.h, size=(self.train_num_rays,), device=self.dataset.all_images.device
+                0, self.dataset.h, size=(self.train_num_rays,)
             )
             if self.dataset.directions.ndim == 3: # (H, W, 3)
                 directions = self.dataset.directions[y, x]
             elif self.dataset.directions.ndim == 4: # (N, H, W, 3)
                 directions = self.dataset.directions[index, y, x]
             rays_o, rays_d = get_rays(directions, c2w)
-            rgb = self.dataset.all_images[index, y, x].view(-1, self.dataset.all_images.shape[-1]).to(self.rank)
-            fg_mask = self.dataset.all_fg_masks[index, y, x].view(-1).to(self.rank)
+            rgb = self.dataset.all_images[index, y, x].view(-1, self.dataset.all_images.shape[-1])
+            fg_mask = self.dataset.all_fg_masks[index, y, x].view(-1)
         else:
             c2w = self.dataset.all_c2w[index][0]
             if self.dataset.directions.ndim == 3: # (H, W, 3)
@@ -61,8 +61,8 @@ class NeuSSystem(BaseSystem):
             elif self.dataset.directions.ndim == 4: # (N, H, W, 3)
                 directions = self.dataset.directions[index][0] 
             rays_o, rays_d = get_rays(directions, c2w)
-            rgb = self.dataset.all_images[index].view(-1, self.dataset.all_images.shape[-1]).to(self.rank)
-            fg_mask = self.dataset.all_fg_masks[index].view(-1).to(self.rank)
+            rgb = self.dataset.all_images[index].view(-1, self.dataset.all_images.shape[-1])
+            fg_mask = self.dataset.all_fg_masks[index].view(-1)
 
         rays = torch.cat([rays_o, F.normalize(rays_d, p=2, dim=-1)], dim=-1)
 
@@ -80,9 +80,9 @@ class NeuSSystem(BaseSystem):
             rgb = rgb * fg_mask[...,None] + self.model.background_color * (1 - fg_mask[...,None])
         
         batch.update({
-            'rays': rays,
-            'rgb': rgb,
-            'fg_mask': fg_mask
+            'rays': rays.to(self.device),
+            'rgb': rgb.to(self.device),
+            'fg_mask': fg_mask.to(self.device)
         })      
     
     def training_step(self, batch, batch_idx):

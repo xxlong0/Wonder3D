@@ -168,7 +168,7 @@ class ColmapDatasetBase():
             else:
                 raise ValueError(f"Please parse the intrinsics for camera model {camdata[1].model}!")
             
-            directions = get_ray_directions(w, h, fx, fy, cx, cy).to(self.rank)
+            directions = get_ray_directions(w, h, fx, fy, cx, cy)
 
             imdata = read_images_binary(os.path.join(self.config.root_dir, 'sparse/0/images.bin'))
 
@@ -189,7 +189,7 @@ class ColmapDatasetBase():
                     img = Image.open(img_path)
                     img = img.resize(img_wh, Image.BICUBIC)
                     img = TF.to_tensor(img).permute(1, 2, 0)[...,:3]
-                    img = img.to(self.rank) if self.config.load_data_on_gpu else img.cpu()
+                    img = img if self.config.load_data_on_gpu else img.cpu()
                     if has_mask:
                         mask_paths = [os.path.join(mask_dir, d.name), os.path.join(mask_dir, d.name[3:])]
                         mask_paths = list(filter(os.path.exists, mask_paths))
@@ -262,10 +262,10 @@ class ColmapDatasetBase():
         exit(1)
         """
 
-        self.all_c2w = self.all_c2w.float().to(self.rank)
+        self.all_c2w = self.all_c2w.float()
         if self.config.load_data_on_gpu:
-            self.all_images = self.all_images.to(self.rank) 
-            self.all_fg_masks = self.all_fg_masks.to(self.rank)
+            self.all_images = self.all_images
+            self.all_fg_masks = self.all_fg_masks
         
 
 class ColmapDataset(Dataset, ColmapDatasetBase):

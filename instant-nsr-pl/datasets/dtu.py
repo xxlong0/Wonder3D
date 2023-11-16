@@ -130,11 +130,11 @@ class DTUDatasetBase():
             self.all_images, self.all_fg_masks = torch.stack(self.all_images, dim=0), torch.stack(self.all_fg_masks, dim=0)  
             self.directions = torch.stack(self.directions, dim=0)
 
-        self.directions = self.directions.float().to(self.rank)
+        self.directions = self.directions.float()
         self.all_c2w, self.all_images, self.all_fg_masks = \
-            self.all_c2w.float().to(self.rank), \
-            self.all_images.float().to(self.rank), \
-            self.all_fg_masks.float().to(self.rank)
+            self.all_c2w.float(), \
+            self.all_images.float(), \
+            self.all_fg_masks.float()
         
 
 class DTUDataset(Dataset, DTUDatasetBase):

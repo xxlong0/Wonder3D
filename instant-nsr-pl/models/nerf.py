@@ -153,7 +153,7 @@ class NeRFModel(BaseModel):
     def export(self, export_config):
         mesh = self.isosurface()
         if export_config.export_vertex_color:
-            _, feature = chunk_batch(self.geometry, export_config.chunk_size, False, mesh['v_pos'].to(self.rank))
+            _, feature = chunk_batch(self.geometry, export_config.chunk_size, False, mesh['v_pos'])
             viewdirs = torch.zeros(feature.shape[0], 3).to(feature)
             viewdirs[...,2] = -1. # set the viewing directions to be -z (looking down)
             rgb = self.texture(feature, viewdirs).clamp(0,1)

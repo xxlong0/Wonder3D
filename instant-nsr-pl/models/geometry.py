@@ -86,7 +86,7 @@ class BaseImplicitGeometry(BaseModel):
                 scale_anything(x[...,0], (0, 1), (vmin[0], vmax[0])),
                 scale_anything(x[...,1], (0, 1), (vmin[1], vmax[1])),
                 scale_anything(x[...,2], (0, 1), (vmin[2], vmax[2])),
-            ], dim=-1).to(self.rank)
+            ], dim=-1).cuda()
             rv = self.forward_level(x).cpu()
             cleanup()
             return rv

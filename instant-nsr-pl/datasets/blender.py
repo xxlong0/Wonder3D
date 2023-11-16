@@ -49,7 +49,7 @@ class BlenderDatasetBase():
 
         # ray directions for all pixels, same for all images (same H, W, focal)
         self.directions = \
-            get_ray_directions(self.w, self.h, self.focal, self.focal, self.w//2, self.h//2).to(self.rank) # (h, w, 3)           
+            get_ray_directions(self.w, self.h, self.focal, self.focal, self.w//2, self.h//2) # (h, w, 3)
 
         self.all_c2w, self.all_images, self.all_fg_masks = [], [], []
 
@@ -66,9 +66,9 @@ class BlenderDatasetBase():
             self.all_images.append(img[...,:3])
 
         self.all_c2w, self.all_images, self.all_fg_masks = \
-            torch.stack(self.all_c2w, dim=0).float().to(self.rank), \
-            torch.stack(self.all_images, dim=0).float().to(self.rank), \
-            torch.stack(self.all_fg_masks, dim=0).float().to(self.rank)
+            torch.stack(self.all_c2w, dim=0).float(), \
+            torch.stack(self.all_images, dim=0).float(), \
+            torch.stack(self.all_fg_masks, dim=0).float()
         
 
 class BlenderDataset(Dataset, BlenderDatasetBase):
@@ -116,7 +116,7 @@ class BlenderDataModule(pl.LightningDataModule):
         sampler = None
         return DataLoader(
             dataset, 
-            num_workers=os.cpu_count(), 
+            num_workers=os.cpu_count(),
             batch_size=batch_size,
             pin_memory=True,
             sampler=sampler
