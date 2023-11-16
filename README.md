@@ -32,7 +32,7 @@ The repo is still being under construction, thanks for your patience.
 - [x] Local gradio demo.
 - [ ] Detailed tutorial.
 - [ ] GUI demo for mesh reconstruction
-- [ ] Windows support
+- [x] Windows support
 - [ ] Docker support
 
 ## Schedule
@@ -42,20 +42,20 @@ The repo is still being under construction, thanks for your patience.
 
 
 ### Preparation for inference
-1. Install packages in `requirements.txt`(Linux system).
+
+#### Linux System Setup.
 ```angular2html
 conda create -n wonder3d
 conda activate wonder3d
 pip install -r requirements.txt
 pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 ```
+#### Windows System Setup.
 
-Windows System Support.
-We found that due to some unknown issues of pytorch-lignting, instant-ngp-sr will fail in windows.
-We are fixing this problem, and will upload a new branch with a detailed install document.
+Please switch to branch `main-windows` to see details of windows setup.
 
-
-2. Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EgSHPyJAtaJFpV_BjXM3zXwB-UMIrT4v-sQwGgw-coPtIA) and into the root folder.
+#### Download pre-trained checkpoint.
+Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EgSHPyJAtaJFpV_BjXM3zXwB-UMIrT4v-sQwGgw-coPtIA) and into the root folder.
 
 ### Inference
 1. Make sure you have the following models.
