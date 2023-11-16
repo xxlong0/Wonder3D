@@ -50,16 +50,10 @@ pip install -r requirements.txt
 pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 ```
 
-Windows System. Thank @fefespn for his help! (Not tested. May refer to issues [#12](https://github.com/xxlong0/Wonder3D/issues/12) [#29](https://github.com/xxlong0/Wonder3D/issues/29) )
-```angular2html
-conda create --name venv_wonder3d -y python=3.8
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
-pip install fire diffusers==0.19.3 transformers bitsandbytes accelerate gradio rembg segment_anything
-pip install einops omegaconf pytorch-lightning==1.9.5 torch_efficient_distloss nerfacc==0.3.3 PyMCubes trimesh
-pip install https://download.pytorch.org/whl/cu118/xformers-0.0.22.post4%2Bcu118-cp38-cp38-manylinux2014_x86_64.whl
-pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
-```
+Windows System Support.
+We found that due to some unknown issues of pytorch-lignting, instant-ngp-sr will fail in windows.
+We are fixing this problem, and will upload a new branch with a detailed install document.
+
 
 2. Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EgSHPyJAtaJFpV_BjXM3zXwB-UMIrT4v-sQwGgw-coPtIA) and into the root folder.
 
