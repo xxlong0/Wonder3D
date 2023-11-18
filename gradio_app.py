@@ -319,7 +319,7 @@ def run_demo():
         gr.Markdown(_DESCRIPTION)
         with gr.Row(variant='panel'):
             with gr.Column(scale=1):
-                input_image = gr.Image(type='pil', image_mode='RGBA', height=320, label='Input image', tool=None)
+                input_image = gr.Image(type='pil', image_mode='RGBA', height=320, label='Input image')
 
                 example_folder = os.path.join(os.path.dirname(__file__), "./example_images")
                 example_fns = [os.path.join(example_folder, example) for example in os.listdir(example_folder)]
@@ -332,8 +332,8 @@ def run_demo():
                     examples_per_page=30
                 )
             with gr.Column(scale=1):
-                processed_image = gr.Image(type='pil', label="Processed Image", interactive=False, height=320, tool=None, image_mode='RGBA', elem_id="disp_image")
-                processed_image_highres = gr.Image(type='pil', image_mode='RGBA', visible=False, tool=None)
+                processed_image = gr.Image(type='pil', label="Processed Image", interactive=False, height=320, image_mode='RGBA', elem_id="disp_image")
+                processed_image_highres = gr.Image(type='pil', image_mode='RGBA', visible=False)
 
                 with gr.Accordion('Advanced options', open=True):
                     with gr.Row():
