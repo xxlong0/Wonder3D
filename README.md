@@ -66,6 +66,12 @@ Wonder3D
     |-- scheduler.bin
     ...
 ```
+* Download the [SAM](https://huggingface.co/spaces/abhishek/StableSAM/blob/main/sam_vit_h_4b8939.pth) model. Put it to the ``sam_pt`` folder.
+```
+Wonder3D
+|-- sam_pt
+    |-- sam_vit_h_4b8939.pth
+```
 2. Predict foreground mask as the alpha channel. We use [Clipdrop](https://clipdrop.co/remove-background) to segment the foreground object interactively. 
 You may also use `rembg` to remove the backgrounds.
 ```bash
@@ -115,6 +121,7 @@ Q: Tips to get better results.
 1. Wonder3D is sensitive the facing direciton of input images. By experiments, front-facing images always lead to good reconstruction.
 2. Limited by resources, current implemetation only supports limited views (6 views) and low resolution (256x256). Any images will be first resized into 256x256 for generation, so images after such a downsample that still keep clear and sharp features will lead to good results.
 3. Images with occlusions will cause worse reconstructions, since 6 views cannot cover the complete object. Images with less occlsuions lead to better results.
+4. Increate optimization steps in instant-nsr-pl, modify `trainer.max_steps: 3000` in `instant-nsr-pl/configs/neuralangelo-ortho-wmask.yaml` to more steps like `trainer.max_steps: 10000`. Longer optimization leads to better texture.
 
 Q: The evelation and azimuth degrees of the generated views?
 
