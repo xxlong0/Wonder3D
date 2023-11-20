@@ -31,7 +31,7 @@ Our overarching mission is to enhance the speed, affordability, and quality of 3
 The repo is still being under construction, thanks for your patience. 
 - [x] Local gradio demo.
 - [ ] Detailed tutorial.
-- [ ] GUI demo for mesh reconstruction
+- [x] GUI demo for mesh reconstruction
 - [x] Windows support
 - [ ] Docker support
 
