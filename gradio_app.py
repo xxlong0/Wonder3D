@@ -30,6 +30,7 @@ from mvdiffusion.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePip
 from diffusers import AutoencoderKL, DDPMScheduler, DDIMScheduler
 from einops import rearrange
 import numpy as np
+import subprocess
 
 
 def save_image(tensor):
@@ -37,6 +38,7 @@ def save_image(tensor):
     # pdb.set_trace()
     im = Image.fromarray(ndarr)
     return ndarr
+
 
 def save_image_to_disk(tensor, fp):
     ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
@@ -49,6 +51,7 @@ def save_image_to_disk(tensor, fp):
 def save_image_numpy(ndarr, fp):
     im = Image.fromarray(ndarr)
     im.save(fp)
+
 
 weight_dtype = torch.float16
 
@@ -77,6 +80,7 @@ def sam_init():
     predictor = SamPredictor(sam)
     return predictor
 
+
 def sam_segment(predictor, input_image, *bbox_coords):
     bbox = np.array(bbox_coords)
     image = np.asarray(input_image)
@@ -84,10 +88,7 @@ def sam_segment(predictor, input_image, *bbox_coords):
     start_time = time.time()
     predictor.set_image(image)
 
-    masks_bbox, scores_bbox, logits_bbox = predictor.predict(
-        box=bbox,
-        multimask_output=True
-    )
+    masks_bbox, scores_bbox, logits_bbox = predictor.predict(box=bbox, multimask_output=True)
 
     print(f"SAM Time: {time.time() - start_time:.3f}s")
     out_image = np.zeros((image.shape[0], image.shape[1], 4), dtype=np.uint8)
@@ -95,7 +96,8 @@ def sam_segment(predictor, input_image, *bbox_coords):
     out_image_bbox = out_image.copy()
     out_image_bbox[:, :, 3] = masks_bbox[-1].astype(np.uint8) * 255
     torch.cuda.empty_cache()
-    return Image.fromarray(out_image_bbox, mode='RGBA') 
+    return Image.fromarray(out_image_bbox, mode='RGBA')
+
 
 def expand2square(pil_img, background_color):
     width, height = pil_img.size
@@ -110,6 +112,7 @@ def expand2square(pil_img, background_color):
         result.paste(pil_img, ((height - width) // 2, 0))
         return result
 
+
 def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=False):
     RES = 1024
     input_image.thumbnail([RES, RES], Image.Resampling.LANCZOS)
@@ -119,7 +122,7 @@ def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=Fal
     if segment:
         image_rem = input_image.convert('RGBA')
         image_nobg = remove(image_rem, alpha_matting=True)
-        arr = np.asarray(image_nobg)[:,:,-1]
+        arr = np.asarray(image_nobg)[:, :, -1]
         x_nonzero = np.nonzero(arr.sum(axis=0))
         y_nonzero = np.nonzero(arr.sum(axis=1))
         x_min = int(x_nonzero[0].min())
@@ -138,12 +141,12 @@ def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=Fal
         ratio = 0.75
         side_len = int(max_size / ratio)
         padded_image = np.zeros((side_len, side_len, 4), dtype=np.uint8)
-        center = side_len//2
-        padded_image[center-h//2:center-h//2+h, center-w//2:center-w//2+w] = image_arr[y:y+h, x:x+w]
+        center = side_len // 2
+        padded_image[center - h // 2 : center - h // 2 + h, center - w // 2 : center - w // 2 + w] = image_arr[y : y + h, x : x + w]
         rgba = Image.fromarray(padded_image).resize((out_res, out_res), Image.LANCZOS)
 
         rgba_arr = np.array(rgba) / 255.0
-        rgb = rgba_arr[...,:3] * rgba_arr[...,-1:] + (1 - rgba_arr[...,-1:])
+        rgb = rgba_arr[..., :3] * rgba_arr[..., -1:] + (1 - rgba_arr[..., -1:])
         input_image = Image.fromarray((rgb * 255).astype(np.uint8))
     else:
         input_image = expand2square(input_image, (127, 127, 127, 0))
@@ -156,7 +159,9 @@ def load_wonder3d_pipeline(cfg):
     image_encoder = CLIPVisionModelWithProjection.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="image_encoder", revision=cfg.revision)
     feature_extractor = CLIPImageProcessor.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="feature_extractor", revision=cfg.revision)
     vae = AutoencoderKL.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="vae", revision=cfg.revision)
-    unet = UNetMV2DConditionModel.from_pretrained_2d(cfg.pretrained_unet_path, subfolder="unet", revision=cfg.revision, **cfg.unet_from_pretrained_kwargs)
+    unet = UNetMV2DConditionModel.from_pretrained_2d(
+        cfg.pretrained_unet_path, subfolder="unet", revision=cfg.revision, **cfg.unet_from_pretrained_kwargs
+    )
     unet.enable_xformers_memory_efficient_attention()
 
     # Move text_encode and vae to gpu and cast to weight_dtype
@@ -165,9 +170,13 @@ def load_wonder3d_pipeline(cfg):
     unet.to(dtype=weight_dtype)
 
     pipeline = MVDiffusionImagePipeline(
-        image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
+        image_encoder=image_encoder,
+        feature_extractor=feature_extractor,
+        vae=vae,
+        unet=unet,
+        safety_checker=None,
         scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
-        **cfg.pipe_kwargs
+        **cfg.pipe_kwargs,
     )
 
     if torch.cuda.is_available():
@@ -175,21 +184,18 @@ def load_wonder3d_pipeline(cfg):
     # sys.main_lock = threading.Lock()
     return pipeline
 
+
 from mvdiffusion.data.single_image_dataset import SingleImageDataset
+
+
 def prepare_data(single_image, crop_size):
-    dataset = SingleImageDataset(
-        root_dir = '',
-        num_views = 6,
-        img_wh=[256, 256],
-        bg_color='white',
-        crop_size=crop_size,
-        single_image=single_image
-    )
+    dataset = SingleImageDataset(root_dir='', num_views=6, img_wh=[256, 256], bg_color='white', crop_size=crop_size, single_image=single_image)
     return dataset[0]
 
 
 def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_size, chk_group=None):
     import pdb
+
     # pdb.set_trace()
 
     if chk_group is not None:
@@ -202,10 +208,10 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     generator = torch.Generator(device=pipeline.unet.device).manual_seed(seed)
 
     # repeat  (2B, Nv, 3, H, W)
-    imgs_in = torch.cat([batch['imgs_in']]*2, dim=0).to(weight_dtype)
-    
+    imgs_in = torch.cat([batch['imgs_in']] * 2, dim=0).to(weight_dtype)
+
     # (2B, Nv, Nce)
-    camera_embeddings = torch.cat([batch['camera_embeddings']]*2, dim=0).to(weight_dtype)
+    camera_embeddings = torch.cat([batch['camera_embeddings']] * 2, dim=0).to(weight_dtype)
 
     task_embeddings = torch.cat([batch['normal_task_embeddings'], batch['color_task_embeddings']], dim=0).to(weight_dtype)
 
@@ -217,9 +223,14 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     # camera_embeddings = rearrange(camera_embeddings, "B Nv Nce -> (B Nv) Nce")
 
     out = pipeline(
-        imgs_in, camera_embeddings, generator=generator, guidance_scale=guidance_scale, 
+        imgs_in,
+        camera_embeddings,
+        generator=generator,
+        guidance_scale=guidance_scale,
         num_inference_steps=steps,
-        output_type='pt', num_images_per_prompt=1, **cfg.pipe_validation_kwargs
+        output_type='pt',
+        num_images_per_prompt=1,
+        **cfg.pipe_validation_kwargs,
     ).images
 
     bsz = out.shape[0] // 2
@@ -259,10 +270,31 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     return out
 
 
+def process_3d(mode, data_dir, guidance_scale, crop_size, method):
+    dir = None
+    if method == 'NeuS':
+        subprocess.run(
+            f'cd NeuS && python exp_runner.py --mode {mode} --conf confs/wmask.conf --case cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/scene --data_dir ../{data_dir}',
+            shell=True,
+        )
+        dir = os.path.join('NeuS/exp/neus', f'cropsize-{crop_size}-cfg{guidance_scale:.1f}/scene/meshes', 'tmp.glb')
+    else:
+        subprocess.run(
+            f'cd instant-nsr-pl && rm -rf exp && python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train dataset.root_dir=../{data_dir} dataset.scene=cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/scene',
+            shell=True,
+        )
+        import glob
+
+        obj_files = glob.glob('instant-nsr-pl/exp/**/save/*.obj', recursive=True)
+        if obj_files:
+            dir = obj_files[0]
+    return dir
+
+
 @dataclass
 class TestConfig:
     pretrained_model_name_or_path: str
-    pretrained_unet_path:str
+    pretrained_unet_path: str
     revision: Optional[str]
     validation_dataset: Dict
     save_dir: str
@@ -291,8 +323,9 @@ class TestConfig:
 
 
 def run_demo():
-    from utils.misc import load_config    
+    from utils.misc import load_config
     from omegaconf import OmegaConf
+
     # parse YAML config to OmegaConf
     cfg = load_config("./configs/mvdiffusion-joint-ortho-6views.yaml")
     # print(cfg)
@@ -306,8 +339,8 @@ def run_demo():
     predictor = sam_init()
 
     custom_theme = gr.themes.Soft(primary_hue="blue").set(
-                    button_secondary_background_fill="*neutral_100",
-                    button_secondary_background_fill_hover="*neutral_200")
+        button_secondary_background_fill="*neutral_100", button_secondary_background_fill_hover="*neutral_200"
+    )
     custom_css = '''#disp_image {
         text-align: center; /* Horizontally center the content */
     }'''
@@ -329,35 +362,54 @@ def run_demo():
                     outputs=[input_image],
                     cache_examples=False,
                     label='Examples (click one of the images below to start)',
-                    examples_per_page=30
+                    examples_per_page=30,
                 )
             with gr.Column(scale=1):
-                processed_image = gr.Image(type='pil', label="Processed Image", interactive=False, height=320, tool=None, image_mode='RGBA', elem_id="disp_image")
+                processed_image = gr.Image(
+                    type='pil',
+                    label="Processed Image",
+                    interactive=False,
+                    height=320,
+                    tool=None,
+                    image_mode='RGBA',
+                    elem_id="disp_image",
+                    visible=False,
+                )
+                ## add 3D Model
+                obj_3d = gr.Model3D(clear_color=[0.0, 0.0, 0.0, 0.0], label="3D Model", height=320)
                 processed_image_highres = gr.Image(type='pil', image_mode='RGBA', visible=False, tool=None)
 
                 with gr.Accordion('Advanced options', open=True):
                     with gr.Row():
                         with gr.Column():
-                            input_processing = gr.CheckboxGroup(['Background Removal'], 
-                                                                label='Input Image Preprocessing',
-                                                                 value=['Background Removal'],
-                                                                 info='untick this, if masked image with alpha channel')
+                            input_processing = gr.CheckboxGroup(
+                                ['Background Removal'],
+                                label='Input Image Preprocessing',
+                                value=['Background Removal'],
+                                info='untick this, if masked image with alpha channel',
+                            )
                         with gr.Column():
-                            output_processing = gr.CheckboxGroup(['Write Results'], label='write the results in ./outputs folder', value=['Write Results']) 
+                            output_processing = gr.CheckboxGroup(
+                                ['Write Results'], label='write the results in ./outputs folder', value=['Write Results']
+                            )
                     with gr.Row():
                         with gr.Column():
-                            scale_slider = gr.Slider(1, 5, value=3, step=1,
-                                                        label='Classifier Free Guidance Scale')
+                            scale_slider = gr.Slider(1, 5, value=3, step=1, label='Classifier Free Guidance Scale')
                         with gr.Column():
-                            steps_slider = gr.Slider(15, 100, value=50, step=1,
-                                                        label='Number of Diffusion Inference Steps')
+                            steps_slider = gr.Slider(15, 100, value=50, step=1, label='Number of Diffusion Inference Steps')
                     with gr.Row():
                         with gr.Column():
                             seed = gr.Number(42, label='Seed')
                         with gr.Column():
                             crop_size = gr.Number(192, label='Crop size')
+
+                        mode = gr.Textbox('train', visible=False)
+                        data_dir = gr.Textbox('outputs', visible=False)
                     # crop_size = 192
+                    with gr.Row():
+                        method = gr.Radio(choices=['instant-nsr-pl', 'NeuS'], label='Method (Default: instant-nsr-pl)', value='instant-nsr-pl')
                 run_btn = gr.Button('Generate', variant='primary', interactive=True)
+                gr.Markdown("<span style='color:red'>Generating the 3D model will take some time, you can preview the image below.</span>")
         with gr.Row():
             view_1 = gr.Image(interactive=False, height=240, show_label=False)
             view_2 = gr.Image(interactive=False, height=240, show_label=False)
@@ -372,16 +424,24 @@ def run_demo():
             normal_4 = gr.Image(interactive=False, height=240, show_label=False)
             normal_5 = gr.Image(interactive=False, height=240, show_label=False)
             normal_6 = gr.Image(interactive=False, height=240, show_label=False)
-        
 
-        run_btn.click(fn=partial(preprocess, predictor), 
-                        inputs=[input_image, input_processing], 
-                        outputs=[processed_image_highres, processed_image], queue=True
-            ).success(fn=partial(run_pipeline, pipeline, cfg), 
-                        inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
-                        outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6]
-                        )
-        
+        # run_btn.click(
+        #     fn=partial(preprocess, predictor), inputs=[input_image, input_processing], outputs=[processed_image_highres, processed_image], queue=True
+        # ).success(
+        #     fn=partial(run_pipeline, pipeline, cfg),
+        #     inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
+        #     outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6],
+        # )
+        run_btn.click(
+            fn=partial(preprocess, predictor), inputs=[input_image, input_processing], outputs=[processed_image_highres, processed_image], queue=True
+        ).success(
+            fn=partial(run_pipeline, pipeline, cfg),
+            inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
+            outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6],
+        ).success(
+            process_3d, inputs=[mode, data_dir, scale_slider, crop_size, method], outputs=[obj_3d]
+        )
+
         demo.queue().launch(share=True, max_threads=80)
 
 

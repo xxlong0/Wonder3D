@@ -1,5 +1,7 @@
 # Initially taken from Github's Python gitignore file
 
+ckpts
+sam_pt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
