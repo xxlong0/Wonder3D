@@ -189,3 +189,4 @@ render_results
 experiments/*
 ckpts/*
 neus/*
+instant-nsr-pl/exp/*

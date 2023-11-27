@@ -56,7 +56,12 @@ def get_down_block(
     cross_attention_norm=None,
     attention_head_dim=None,
     downsample_type=None,
-    num_views=1
+    num_views=1,
+    cd_attention_last: bool = False,
+    cd_attention_mid: bool = False,
+    multiview_attention: bool = True,
+    sparse_mv_attention: bool = False,
+    mvcd_attention: bool=False
 ):
     # If attn head dim is not defined, we default it to the number of heads
     if attention_head_dim is None:
@@ -155,7 +160,12 @@ def get_down_block(
             only_cross_attention=only_cross_attention,
             upcast_attention=upcast_attention,
             resnet_time_scale_shift=resnet_time_scale_shift,
-            num_views=num_views
+            num_views=num_views,
+            cd_attention_last=cd_attention_last,
+            cd_attention_mid=cd_attention_mid,
+            multiview_attention=multiview_attention,
+            sparse_mv_attention=sparse_mv_attention,
+            mvcd_attention=mvcd_attention
         )
     elif down_block_type == "SimpleCrossAttnDownBlock2D":
         if cross_attention_dim is None:
@@ -276,7 +286,12 @@ def get_up_block(
     cross_attention_norm=None,
     attention_head_dim=None,
     upsample_type=None,
-    num_views=1
+    num_views=1,
+    cd_attention_last: bool = False,
+    cd_attention_mid: bool = False,
+    multiview_attention: bool = True,
+    sparse_mv_attention: bool = False,
+    mvcd_attention: bool=False
 ):
     # If attn head dim is not defined, we default it to the number of heads
     if attention_head_dim is None:
@@ -358,7 +373,12 @@ def get_up_block(
             only_cross_attention=only_cross_attention,
             upcast_attention=upcast_attention,
             resnet_time_scale_shift=resnet_time_scale_shift,
-            num_views=num_views
+            num_views=num_views,
+            cd_attention_last=cd_attention_last,
+            cd_attention_mid=cd_attention_mid,
+            multiview_attention=multiview_attention,
+            sparse_mv_attention=sparse_mv_attention,
+            mvcd_attention=mvcd_attention
         )    
     elif up_block_type == "SimpleCrossAttnUpBlock2D":
         if cross_attention_dim is None:
@@ -496,10 +516,11 @@ class UNetMidBlockMV2DCrossAttn(nn.Module):
         use_linear_projection=False,
         upcast_attention=False,
         num_views: int = 1,
-        joint_attention: bool = False,
-        joint_attention_twice: bool = False,
+        cd_attention_last: bool = False,
+        cd_attention_mid: bool = False,
         multiview_attention: bool = True,
-        cross_domain_attention: bool=False
+        sparse_mv_attention: bool = False,
+        mvcd_attention: bool=False
     ):
         super().__init__()
 
@@ -537,10 +558,11 @@ class UNetMidBlockMV2DCrossAttn(nn.Module):
                         use_linear_projection=use_linear_projection,
                         upcast_attention=upcast_attention,
                         num_views=num_views,
-                        joint_attention=joint_attention,
-                        joint_attention_twice=joint_attention_twice,
+                        cd_attention_last=cd_attention_last,
+                        cd_attention_mid=cd_attention_mid,
                         multiview_attention=multiview_attention,
-                        cross_domain_attention=cross_domain_attention
+                        sparse_mv_attention=sparse_mv_attention,
+                        mvcd_attention=mvcd_attention
                     )
                 )
             else:
@@ -610,7 +632,12 @@ class CrossAttnUpBlockMV2D(nn.Module):
         use_linear_projection=False,
         only_cross_attention=False,
         upcast_attention=False,
-        num_views: int = 1
+        num_views: int = 1,
+        cd_attention_last: bool = False,
+        cd_attention_mid: bool = False,
+        multiview_attention: bool = True,
+        sparse_mv_attention: bool = False,
+        mvcd_attention: bool=False
     ):
         super().__init__()
         resnets = []
@@ -649,7 +676,12 @@ class CrossAttnUpBlockMV2D(nn.Module):
                         use_linear_projection=use_linear_projection,
                         only_cross_attention=only_cross_attention,
                         upcast_attention=upcast_attention,
-                        num_views=num_views
+                        num_views=num_views,
+                        cd_attention_last=cd_attention_last,
+                        cd_attention_mid=cd_attention_mid,
+                        multiview_attention=multiview_attention,
+                        sparse_mv_attention=sparse_mv_attention,
+                        mvcd_attention=mvcd_attention
                     )
                 )
             else:
@@ -751,7 +783,12 @@ class CrossAttnDownBlockMV2D(nn.Module):
         use_linear_projection=False,
         only_cross_attention=False,
         upcast_attention=False,
-        num_views: int = 1
+        num_views: int = 1,
+        cd_attention_last: bool = False,
+        cd_attention_mid: bool = False,
+        multiview_attention: bool = True,
+        sparse_mv_attention: bool = False,
+        mvcd_attention: bool=False
     ):
         super().__init__()
         resnets = []
@@ -788,7 +825,12 @@ class CrossAttnDownBlockMV2D(nn.Module):
                         use_linear_projection=use_linear_projection,
                         only_cross_attention=only_cross_attention,
                         upcast_attention=upcast_attention,
-                        num_views=num_views
+                        num_views=num_views,
+                        cd_attention_last=cd_attention_last,
+                        cd_attention_mid=cd_attention_mid,
+                        multiview_attention=multiview_attention,
+                        sparse_mv_attention=sparse_mv_attention,
+                        mvcd_attention=mvcd_attention
                     )
                 )
             else:

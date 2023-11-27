@@ -81,20 +81,15 @@ class TestConfig:
     cond_on_colors: bool
 
 
-def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg: TestConfig, weight_dtype, name, save_dir):
+def log_validation(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, save_dir):
 
-    pipeline = MVDiffusionImagePipeline(
-        image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
-        scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
-        **cfg.pipe_kwargs
-    )
 
     pipeline.set_progress_bar_config(disable=True)
 
     if cfg.seed is None:
         generator = None
     else:
-        generator = torch.Generator(device=unet.device).manual_seed(cfg.seed)
+        generator = torch.Generator(device=pipeline.device).manual_seed(cfg.seed)
     
     images_cond, images_pred = [], defaultdict(list)
     for i, batch in tqdm(enumerate(dataloader)):
@@ -163,20 +158,14 @@ def save_image_numpy(ndarr, fp):
     im = Image.fromarray(ndarr)
     im.save(fp)
 
-def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet, cfg: TestConfig, weight_dtype, name, save_dir):
-
-    pipeline = MVDiffusionImagePipeline(
-        image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
-        scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
-        **cfg.pipe_kwargs
-    )
+def log_validation_joint(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, save_dir):
 
     pipeline.set_progress_bar_config(disable=True)
 
     if cfg.seed is None:
         generator = None
     else:
-        generator = torch.Generator(device=unet.device).manual_seed(cfg.seed)
+        generator = torch.Generator(device=pipeline.device).manual_seed(cfg.seed)
     
     images_cond, normals_pred, images_pred = [], defaultdict(list), defaultdict(list)
     for i, batch in tqdm(enumerate(dataloader)):
@@ -238,6 +227,24 @@ def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet
 
     torch.cuda.empty_cache()
 
+
+def load_wonder3d_pipeline(cfg):
+
+    pipeline = MVDiffusionImagePipeline.from_pretrained(
+    cfg.pretrained_model_name_or_path,
+    torch_dtype=weight_dtype
+    )
+
+    # pipeline.to('cuda:0')
+    pipeline.unet.enable_xformers_memory_efficient_attention()
+
+
+    if torch.cuda.is_available():
+        pipeline.to('cuda:0')
+    # sys.main_lock = threading.Lock()
+    return pipeline
+
+
 def main(
     cfg: TestConfig
 ):
@@ -246,12 +253,7 @@ def main(
     if cfg.seed is not None:
         set_seed(cfg.seed)
 
-    # Load scheduler, tokenizer and models.
-    # noise_scheduler = DDPMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler")
-    image_encoder = CLIPVisionModelWithProjection.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="image_encoder", revision=cfg.revision)
-    feature_extractor = CLIPImageProcessor.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="feature_extractor", revision=cfg.revision)
-    vae = AutoencoderKL.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="vae", revision=cfg.revision)
-    unet = UNetMV2DConditionModel.from_pretrained_2d(cfg.pretrained_unet_path, subfolder="unet", revision=cfg.revision, **cfg.unet_from_pretrained_kwargs)
+    pipeline = load_wonder3d_pipeline(cfg)
 
     if cfg.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
@@ -262,7 +264,7 @@ def main(
                 print(
                     "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
                 )
-            unet.enable_xformers_memory_efficient_attention()
+            pipeline.unet.enable_xformers_memory_efficient_attention()
             print("use xformers.")
         else:
             raise ValueError("xformers is not available. Make sure it is installed correctly")
@@ -279,21 +281,12 @@ def main(
     )
 
 
-    device = 'cuda'
-    # Move text_encode and vae to gpu and cast to weight_dtype
-    image_encoder.to(device, dtype=weight_dtype)
-    vae.to(device, dtype=weight_dtype)
-    unet.to(device, dtype=weight_dtype)
-
     os.makedirs(cfg.save_dir, exist_ok=True)
 
     if cfg.pred_type == 'joint':
         log_validation_joint(
                     validation_dataloader,
-                    vae,
-                    feature_extractor,
-                    image_encoder,
-                    unet,
+                    pipeline,
                     cfg,
                     weight_dtype,
                     'validation',
@@ -302,10 +295,7 @@ def main(
     else:
         log_validation(
                     validation_dataloader,
-                    vae,
-                    feature_extractor,
-                    image_encoder,
-                    unet,
+                    pipeline,
                     cfg,
                     weight_dtype,
                     'validation',

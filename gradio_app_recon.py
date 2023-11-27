@@ -31,7 +31,7 @@ from diffusers import AutoencoderKL, DDPMScheduler, DDIMScheduler
 from einops import rearrange
 import numpy as np
 import subprocess
-
+from datetime import datetime
 
 def save_image(tensor):
     ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
@@ -154,30 +154,15 @@ def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=Fal
 
 
 def load_wonder3d_pipeline(cfg):
-    # Load scheduler, tokenizer and models.
-    # noise_scheduler = DDPMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler")
-    image_encoder = CLIPVisionModelWithProjection.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="image_encoder", revision=cfg.revision)
-    feature_extractor = CLIPImageProcessor.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="feature_extractor", revision=cfg.revision)
-    vae = AutoencoderKL.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="vae", revision=cfg.revision)
-    unet = UNetMV2DConditionModel.from_pretrained_2d(
-        cfg.pretrained_unet_path, subfolder="unet", revision=cfg.revision, **cfg.unet_from_pretrained_kwargs
-    )
-    unet.enable_xformers_memory_efficient_attention()
 
-    # Move text_encode and vae to gpu and cast to weight_dtype
-    image_encoder.to(dtype=weight_dtype)
-    vae.to(dtype=weight_dtype)
-    unet.to(dtype=weight_dtype)
-
-    pipeline = MVDiffusionImagePipeline(
-        image_encoder=image_encoder,
-        feature_extractor=feature_extractor,
-        vae=vae,
-        unet=unet,
-        safety_checker=None,
-        scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
-        **cfg.pipe_kwargs,
+    pipeline = MVDiffusionImagePipeline.from_pretrained(
+    "./ckpts",
+    torch_dtype=weight_dtype
     )
+
+    # pipeline.to('cuda:0')
+    pipeline.unet.enable_xformers_memory_efficient_attention()
+
 
     if torch.cuda.is_available():
         pipeline.to('cuda:0')
@@ -192,10 +177,11 @@ def prepare_data(single_image, crop_size):
     dataset = SingleImageDataset(root_dir='', num_views=6, img_wh=[256, 256], bg_color='white', crop_size=crop_size, single_image=single_image)
     return dataset[0]
 
+scene = 'scene'
 
 def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_size, chk_group=None):
     import pdb
-
+    global scene
     # pdb.set_trace()
 
     if chk_group is not None:
@@ -241,7 +227,7 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
         VIEWS = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
         cur_dir = os.path.join("./outputs", f"cropsize-{crop_size}-cfg{guidance_scale:.1f}")
 
-        scene = 'scene'
+        scene = 'scene'+datetime.now().strftime('@%Y%m%d-%H%M%S')
         scene_dir = os.path.join(cur_dir, scene)
         normal_dir = os.path.join(scene_dir, "normals")
         masked_colors_dir = os.path.join(scene_dir, "masked_colors")
@@ -270,24 +256,25 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     return out
 
 
-def process_3d(mode, data_dir, guidance_scale, crop_size, method):
+def process_3d(mode, data_dir, guidance_scale, crop_size):
     dir = None
-    if method == 'NeuS':
-        subprocess.run(
-            f'cd NeuS && python exp_runner.py --mode {mode} --conf confs/wmask.conf --case cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/scene --data_dir ../{data_dir}',
-            shell=True,
-        )
-        dir = os.path.join('NeuS/exp/neus', f'cropsize-{crop_size}-cfg{guidance_scale:.1f}/scene/meshes', 'tmp.glb')
-    else:
-        subprocess.run(
-            f'cd instant-nsr-pl && rm -rf exp && python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train dataset.root_dir=../{data_dir} dataset.scene=cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/scene',
-            shell=True,
-        )
-        import glob
+    global scene
 
-        obj_files = glob.glob('instant-nsr-pl/exp/**/save/*.obj', recursive=True)
-        if obj_files:
-            dir = obj_files[0]
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+
+    subprocess.run(
+        f'cd instant-nsr-pl && python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train dataset.root_dir=../{data_dir}/cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/ dataset.scene={scene} && cd ..',
+        shell=True,
+    )
+    import glob
+    # import pdb
+
+    # pdb.set_trace()
+
+    obj_files = glob.glob(f'{cur_dir}/instant-nsr-pl/exp/{scene}/*/save/*.obj', recursive=True)
+    print(obj_files)
+    if obj_files:
+        dir = obj_files[0]
     return dir
 
 
@@ -354,6 +341,27 @@ def run_demo():
             with gr.Column(scale=1):
                 input_image = gr.Image(type='pil', image_mode='RGBA', height=320, label='Input image', tool=None)
 
+            with gr.Column(scale=1):
+                processed_image = gr.Image(
+                    type='pil',
+                    label="Processed Image",
+                    interactive=False,
+                    height=320,
+                    tool=None,
+                    image_mode='RGBA',
+                    elem_id="disp_image",
+                    visible=True,
+                )
+            with gr.Column(scale=1):
+                ## add 3D Model
+                obj_3d = gr.Model3D(
+                                    # clear_color=[0.0, 0.0, 0.0, 0.0], 
+                                    label="3D Model", height=320, 
+                                    # camera_position=[0,0,2.0]
+                                    )
+                processed_image_highres = gr.Image(type='pil', image_mode='RGBA', visible=False, tool=None)
+        with gr.Row(variant='panel'):
+            with gr.Column(scale=1):
                 example_folder = os.path.join(os.path.dirname(__file__), "./example_images")
                 example_fns = [os.path.join(example_folder, example) for example in os.listdir(example_folder)]
                 gr.Examples(
@@ -365,20 +373,6 @@ def run_demo():
                     examples_per_page=30,
                 )
             with gr.Column(scale=1):
-                processed_image = gr.Image(
-                    type='pil',
-                    label="Processed Image",
-                    interactive=False,
-                    height=320,
-                    tool=None,
-                    image_mode='RGBA',
-                    elem_id="disp_image",
-                    visible=False,
-                )
-                ## add 3D Model
-                obj_3d = gr.Model3D(clear_color=[0.0, 0.0, 0.0, 0.0], label="3D Model", height=320)
-                processed_image_highres = gr.Image(type='pil', image_mode='RGBA', visible=False, tool=None)
-
                 with gr.Accordion('Advanced options', open=True):
                     with gr.Row():
                         with gr.Column():
@@ -394,7 +388,7 @@ def run_demo():
                             )
                     with gr.Row():
                         with gr.Column():
-                            scale_slider = gr.Slider(1, 5, value=3, step=1, label='Classifier Free Guidance Scale')
+                            scale_slider = gr.Slider(1, 5, value=1, step=1, label='Classifier Free Guidance Scale')
                         with gr.Column():
                             steps_slider = gr.Slider(15, 100, value=50, step=1, label='Number of Diffusion Inference Steps')
                     with gr.Row():
@@ -406,10 +400,12 @@ def run_demo():
                         mode = gr.Textbox('train', visible=False)
                         data_dir = gr.Textbox('outputs', visible=False)
                     # crop_size = 192
-                    with gr.Row():
-                        method = gr.Radio(choices=['instant-nsr-pl', 'NeuS'], label='Method (Default: instant-nsr-pl)', value='instant-nsr-pl')
-                run_btn = gr.Button('Generate', variant='primary', interactive=True)
-                gr.Markdown("<span style='color:red'>Generating the 3D model will take some time, you can preview the image below.</span>")
+                    # with gr.Row():
+                    #     method = gr.Radio(choices=['instant-nsr-pl', 'NeuS'], label='Method (Default: instant-nsr-pl)', value='instant-nsr-pl')
+                # run_btn = gr.Button('Generate Normals and Colors', variant='primary', interactive=True)
+                run_btn = gr.Button('Reconstruct 3D model', variant='primary', interactive=True)
+                gr.Markdown("<span style='color:red'> Reconstruction may cost several minutes.</span>")
+        
         with gr.Row():
             view_1 = gr.Image(interactive=False, height=240, show_label=False)
             view_2 = gr.Image(interactive=False, height=240, show_label=False)
@@ -425,13 +421,6 @@ def run_demo():
             normal_5 = gr.Image(interactive=False, height=240, show_label=False)
             normal_6 = gr.Image(interactive=False, height=240, show_label=False)
 
-        # run_btn.click(
-        #     fn=partial(preprocess, predictor), inputs=[input_image, input_processing], outputs=[processed_image_highres, processed_image], queue=True
-        # ).success(
-        #     fn=partial(run_pipeline, pipeline, cfg),
-        #     inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
-        #     outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6],
-        # )
         run_btn.click(
             fn=partial(preprocess, predictor), inputs=[input_image, input_processing], outputs=[processed_image_highres, processed_image], queue=True
         ).success(
@@ -439,7 +428,7 @@ def run_demo():
             inputs=[processed_image_highres, scale_slider, steps_slider, seed, crop_size, output_processing],
             outputs=[view_1, view_2, view_3, view_4, view_5, view_6, normal_1, normal_2, normal_3, normal_4, normal_5, normal_6],
         ).success(
-            process_3d, inputs=[mode, data_dir, scale_slider, crop_size, method], outputs=[obj_3d]
+            process_3d, inputs=[mode, data_dir, scale_slider, crop_size], outputs=[obj_3d]
         )
 
         demo.queue().launch(share=True, max_threads=80)

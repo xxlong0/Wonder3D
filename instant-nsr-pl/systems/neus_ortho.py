@@ -297,51 +297,54 @@ class OrthoNeuSSystem(BaseSystem):
             self.log('val/psnr', psnr, prog_bar=True, rank_zero_only=True)
         self.export()       
 
-    def test_step(self, batch, batch_idx):
-        out = self(batch)
-        psnr = self.criterions['psnr'](out['comp_rgb_full'].to(batch['rgb']), batch['rgb'])
-        W, H = self.dataset.img_wh
-        self.save_image_grid(f"it{self.global_step}-test/{batch['index'][0].item()}.png", [
-            {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
-        ] + ([
-            {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-        ] if self.config.model.learned_background else []) + [
-            {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
-            {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
-        ])
-        return {
-            'psnr': psnr,
-            'index': batch['index']
-        }      
+    # def test_step(self, batch, batch_idx):
+    #     out = self(batch)
+    #     psnr = self.criterions['psnr'](out['comp_rgb_full'].to(batch['rgb']), batch['rgb'])
+    #     W, H = self.dataset.img_wh
+    #     self.save_image_grid(f"it{self.global_step}-test/{batch['index'][0].item()}.png", [
+    #         {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+    #         {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
+    #     ] + ([
+    #         {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+    #         {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+    #     ] if self.config.model.learned_background else []) + [
+    #         {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
+    #         {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
+    #     ])
+    #     return {
+    #         'psnr': psnr,
+    #         'index': batch['index']
+    #     }      
     
+    def test_step(self, batch, batch_idx):
+        pass
+
     def test_epoch_end(self, out):
         """
         Synchronize devices.
         Generate image sequence using test outputs.
         """
-        out = self.all_gather(out)
+        # out = self.all_gather(out)
         if self.trainer.is_global_zero:
-            out_set = {}
-            for step_out in out:
-                # DP
-                if step_out['index'].ndim == 1:
-                    out_set[step_out['index'].item()] = {'psnr': step_out['psnr']}
-                # DDP
-                else:
-                    for oi, index in enumerate(step_out['index']):
-                        out_set[index[0].item()] = {'psnr': step_out['psnr'][oi]}
-            psnr = torch.mean(torch.stack([o['psnr'] for o in out_set.values()]))
-            self.log('test/psnr', psnr, prog_bar=True, rank_zero_only=True)    
+            # out_set = {}
+            # for step_out in out:
+            #     # DP
+            #     if step_out['index'].ndim == 1:
+            #         out_set[step_out['index'].item()] = {'psnr': step_out['psnr']}
+            #     # DDP
+            #     else:
+            #         for oi, index in enumerate(step_out['index']):
+            #             out_set[index[0].item()] = {'psnr': step_out['psnr'][oi]}
+            # psnr = torch.mean(torch.stack([o['psnr'] for o in out_set.values()]))
+            # self.log('test/psnr', psnr, prog_bar=True, rank_zero_only=True)    
 
-            self.save_img_sequence(
-                f"it{self.global_step}-test",
-                f"it{self.global_step}-test",
-                '(\d+)\.png',
-                save_format='mp4',
-                fps=30
-            )
+            # self.save_img_sequence(
+            #     f"it{self.global_step}-test",
+            #     f"it{self.global_step}-test",
+            #     '(\d+)\.png',
+            #     save_format='mp4',
+            #     fps=30
+            # )
             
             self.export()
     

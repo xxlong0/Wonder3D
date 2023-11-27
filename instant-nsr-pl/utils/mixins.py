@@ -217,17 +217,19 @@ class SaverMixin():
             print("ortho scale is: ", ortho_scale)
             v_pos = v_pos * ortho_scale * 0.5
 
-        # v_pos_copy =  np.zeros_like(v_pos)
-        # v_pos_copy[:, 0] = v_pos[:, 0]
-        # v_pos_copy[:, 1] = v_pos[:, 2]
-        # v_pos_copy[:, 2] = v_pos[:, 1] * -1
+        # change to front-facing
+        v_pos_copy =  np.zeros_like(v_pos)  
+        v_pos_copy[:, 0] = v_pos[:, 0]
+        v_pos_copy[:, 1] = v_pos[:, 2]
+        v_pos_copy[:, 2] = v_pos[:, 1] 
 
         import trimesh
         mesh = trimesh.Trimesh(
-            vertices=v_pos,
+            vertices=v_pos_copy,
             faces=t_pos_idx,
             vertex_colors=v_rgb
         )
+        trimesh.repair.fix_inversion(mesh)
         mesh.export(self.get_save_path(filename))
         # mesh.export(self.get_save_path(filename.replace(".obj", "-meshlab.obj")))
 

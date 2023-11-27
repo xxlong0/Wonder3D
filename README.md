@@ -92,7 +92,7 @@ bash run_test.sh
 
 #### Interactive inference: run your local gradio demo
 ```bash
-python gradio_app.py
+python gradio_app_mv.py   # generate multi-view normals and colors
 ```
 
 4. Mesh Extraction
@@ -104,6 +104,11 @@ cd ./instant-nsr-pl
 bash run.sh output_folder_path scene_name
 ```
 Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
+
+#### Interactive inference: run your local gradio demo
+```bash
+python gradio_app_recon.py   
+```
 
 #### NeuS-based Mesh Extraction
 

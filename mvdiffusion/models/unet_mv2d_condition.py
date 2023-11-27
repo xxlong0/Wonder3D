@@ -229,10 +229,11 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
         cross_attention_norm: Optional[str] = None,
         addition_embed_type_num_heads=64,
         num_views: int = 1,
-        joint_attention: bool = False,
-        joint_attention_twice: bool = False,
+        cd_attention_last: bool = False,
+        cd_attention_mid: bool = False,
         multiview_attention: bool = True,
-        cross_domain_attention: bool = False
+        sparse_mv_attention: bool = False,
+        mvcd_attention: bool = False
     ):
         super().__init__()
 
@@ -481,7 +482,12 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
                 resnet_out_scale_factor=resnet_out_scale_factor,
                 cross_attention_norm=cross_attention_norm,
                 attention_head_dim=attention_head_dim[i] if attention_head_dim[i] is not None else output_channel,
-                num_views=num_views
+                num_views=num_views,
+                cd_attention_last=cd_attention_last,
+                cd_attention_mid=cd_attention_mid,
+                multiview_attention=multiview_attention,
+                sparse_mv_attention=sparse_mv_attention,
+                mvcd_attention=mvcd_attention
             )
             self.down_blocks.append(down_block)
 
@@ -519,10 +525,11 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
                 use_linear_projection=use_linear_projection,
                 upcast_attention=upcast_attention,
                 num_views=num_views,
-                joint_attention=joint_attention,
-                joint_attention_twice=joint_attention_twice,
+                cd_attention_last=cd_attention_last,
+                cd_attention_mid=cd_attention_mid,
                 multiview_attention=multiview_attention,
-                cross_domain_attention=cross_domain_attention
+                sparse_mv_attention=sparse_mv_attention,
+                mvcd_attention=mvcd_attention
             )
         elif mid_block_type == "UNetMidBlock2DSimpleCrossAttn":
             self.mid_block = UNetMidBlock2DSimpleCrossAttn(
@@ -593,7 +600,12 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
                 resnet_out_scale_factor=resnet_out_scale_factor,
                 cross_attention_norm=cross_attention_norm,
                 attention_head_dim=attention_head_dim[i] if attention_head_dim[i] is not None else output_channel,
-                num_views=num_views
+                num_views=num_views,
+                cd_attention_last=cd_attention_last,
+                cd_attention_mid=cd_attention_mid,
+                multiview_attention=multiview_attention,
+                sparse_mv_attention=sparse_mv_attention,
+                mvcd_attention=mvcd_attention
             )
             self.up_blocks.append(up_block)
             prev_output_channel = output_channel
@@ -1049,9 +1061,9 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
             cls, pretrained_model_name_or_path: Optional[Union[str, os.PathLike]],
             camera_embedding_type: str, num_views: int, sample_size: int,
             zero_init_conv_in: bool = True, zero_init_camera_projection: bool = False,
-            projection_class_embeddings_input_dim: int=6, joint_attention: bool = False, 
-            joint_attention_twice: bool = False, multiview_attention: bool = True,
-            cross_domain_attention: bool = False,
+            projection_class_embeddings_input_dim: int=6, cd_attention_last: bool = False, 
+            cd_attention_mid: bool = False, multiview_attention: bool = True, 
+            sparse_mv_attention: bool = False, mvcd_attention: bool = False,
             in_channels: int = 8, out_channels: int = 4,
             **kwargs
         ):
@@ -1237,10 +1249,11 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
         config['out_channels'] = out_channels
         config['sample_size'] = sample_size # training resolution
         config['num_views'] = num_views
-        config['joint_attention'] = joint_attention
-        config['joint_attention_twice'] = joint_attention_twice
+        config['cd_attention_last'] = cd_attention_last
+        config['cd_attention_mid'] = cd_attention_mid
         config['multiview_attention'] = multiview_attention
-        config['cross_domain_attention'] = cross_domain_attention
+        config['sparse_mv_attention'] = sparse_mv_attention
+        config['mvcd_attention'] = mvcd_attention
         config["down_block_types"] = [
             "CrossAttnDownBlockMV2D",
             "CrossAttnDownBlockMV2D",
@@ -1302,8 +1315,25 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
                 )
 
             model = cls.from_config(config, **unused_kwargs)
-
-            state_dict = load_state_dict(model_file, variant=variant)
+            import copy
+            state_dict_v0 = load_state_dict(model_file, variant=variant)
+            state_dict = copy.deepcopy(state_dict_v0)
+            # attn_joint -> attn_joint_last; norm_joint -> norm_joint_last
+            # attn_joint_twice -> attn_joint_mid; norm_joint_twice -> norm_joint_mid
+            for key in state_dict_v0:
+                if 'attn_joint.' in key:
+                    tmp = copy.deepcopy(key)
+                    state_dict[key.replace("attn_joint.", "attn_joint_last.")] = state_dict.pop(tmp)
+                if 'norm_joint.' in key:
+                    tmp = copy.deepcopy(key)
+                    state_dict[key.replace("norm_joint.", "norm_joint_last.")] = state_dict.pop(tmp)
+                if 'attn_joint_twice.' in key:
+                    tmp = copy.deepcopy(key)
+                    state_dict[key.replace("attn_joint_twice.", "attn_joint_mid.")] = state_dict.pop(tmp)
+                if 'norm_joint_twice.' in key:
+                    tmp = copy.deepcopy(key)
+                    state_dict[key.replace("norm_joint_twice.", "norm_joint_mid.")] = state_dict.pop(tmp)
+            
             model._convert_deprecated_attention_blocks(state_dict)
 
             conv_in_weight = state_dict['conv_in.weight']

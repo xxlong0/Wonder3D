@@ -1,5 +1,5 @@
-pretrained_model_name_or_path: 'lambdalabs/sd-image-variations-diffusers'
-pretrained_unet_path: './ckpts/'
+pretrained_model_name_or_path: './ckpts'
+# pretrained_unet_path: './ckpts'
 revision: null
 validation_dataset:
   root_dir: "./example_images" # the folder path stores testing images
@@ -33,6 +33,7 @@ unet_from_pretrained_kwargs:
   projection_class_embeddings_input_dim: 10  
   num_views: 6
   sample_size: 32
+  cd_attention_mid: True
   zero_init_conv_in: false
   zero_init_camera_projection: false  
 
