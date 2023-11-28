@@ -40,7 +40,7 @@ cond = Image.open(requests.get("https://d.skis.ltd/nrp/sample-data/lysol.png", s
 cond = Image.fromarray(np.array(cond)[:, :, :3])
 
 # Run the pipeline!
-images = pipeline(cond, num_inference_steps=20, output_type='pt').images
+images = pipeline(cond, num_inference_steps=20, output_type='pt', guidance_scale=1.0).images
 
 result = make_grid(images, nrow=6, ncol=2, padding=0, value_range=(0, 1))
 
