@@ -189,12 +189,10 @@ Wonder3D is under [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html), so 
 ## Citation
 If you find this repository useful in your project, please cite the following work. :)
 ```
-@misc{long2023wonder3d,
-      title={Wonder3D: Single Image to 3D using Cross-Domain Diffusion}, 
-      author={Xiaoxiao Long and Yuan-Chen Guo and Cheng Lin and Yuan Liu and Zhiyang Dou and Lingjie Liu and Yuexin Ma and Song-Hai Zhang and Marc Habermann and Christian Theobalt and Wenping Wang},
-      year={2023},
-      eprint={2310.15008},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{long2023wonder3d,
+  title={Wonder3D: Single Image to 3D using Cross-Domain Diffusion},
+  author={Long, Xiaoxiao and Guo, Yuan-Chen and Lin, Cheng and Liu, Yuan and Dou, Zhiyang and Liu, Lingjie and Ma, Yuexin and Zhang, Song-Hai and Habermann, Marc and Theobalt, Christian and others},
+  journal={arXiv preprint arXiv:2310.15008},
+  year={2023}
 }
 ```
