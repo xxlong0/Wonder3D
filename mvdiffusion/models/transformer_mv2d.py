@@ -27,7 +27,7 @@ from diffusers.models.lora import LoRACompatibleConv, LoRACompatibleLinear
 from diffusers.models.modeling_utils import ModelMixin
 from diffusers.utils.import_utils import is_xformers_available
 
-from einops import rearrange
+from einops import rearrange, repeat
 import pdb
 import random
 
@@ -37,6 +37,15 @@ if is_xformers_available():
     import xformers.ops
 else:
     xformers = None
+
+def my_repeat(tensor, num_repeats):
+    """
+    Repeat a tensor along a given dimension
+    """
+    if len(tensor.shape) == 3:
+        return repeat(tensor,  "b d c -> (b v) d c", v=num_repeats)
+    elif len(tensor.shape) == 4:
+        return repeat(tensor,  "a b d c -> (a v) b d c", v=num_repeats)
 
 
 @dataclass
@@ -501,7 +510,7 @@ class BasicMVTransformerBlock(nn.Module):
         self.cd_attention_mid = cd_attention_mid
 
         if self.cd_attention_mid:
-            print("cross-domain attn in the middle")
+            # print("cross-domain attn in the middle")
             # Joint task -Attn
             self.attn_joint_mid = CustomJointAttention(
                 query_dim=dim,
@@ -772,9 +781,14 @@ class XFormersMVAttnProcessor:
         # pdb.set_trace()
         # multi-view self-attention
         if multiview_attention:
-
-            key = rearrange(key_raw, "(b t) d c -> b (t d) c", t=num_views).repeat_interleave(num_views, dim=0)
-            value = rearrange(value_raw, "(b t) d c -> b (t d) c", t=num_views).repeat_interleave(num_views, dim=0)
+            if not sparse_mv_attention:
+                key = my_repeat(rearrange(key_raw, "(b t) d c -> b (t d) c", t=num_views), num_views)
+                value = my_repeat(rearrange(value_raw, "(b t) d c -> b (t d) c", t=num_views), num_views)
+            else:
+                key_front = my_repeat(rearrange(key_raw, "(b t) d c -> b t d c", t=num_views)[:, 0, :, :], num_views) # [(b t), d, c]
+                value_front = my_repeat(rearrange(value_raw, "(b t) d c -> b t d c", t=num_views)[:, 0, :, :], num_views)
+                key = torch.cat([key_front, key_raw], dim=1) # shape (b t) (2 d) c
+                value = torch.cat([value_front, value_raw], dim=1)
 
         else:
             # print("don't use multiview attention.")

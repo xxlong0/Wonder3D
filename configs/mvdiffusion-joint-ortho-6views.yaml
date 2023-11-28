@@ -1,5 +1,4 @@
-pretrained_model_name_or_path: './ckpts'
-# pretrained_unet_path: './ckpts'
+pretrained_model_name_or_path: 'flamehaze1115/wonder3d-v1.0' # or './ckpts'
 revision: null
 validation_dataset:
   root_dir: "./example_images" # the folder path stores testing images
@@ -23,7 +22,7 @@ pipe_kwargs:
   camera_embedding_type: 'e_de_da_sincos'
   num_views: 6
 
-validation_guidance_scales: [3.0]
+validation_guidance_scales: [1.0]
 pipe_validation_kwargs:
   eta: 1.0
 validation_grid_nrow: 6
@@ -33,7 +32,7 @@ unet_from_pretrained_kwargs:
   projection_class_embeddings_input_dim: 10  
   num_views: 6
   sample_size: 32
-  cd_attention_mid: True
+  cd_attention_mid: true
   zero_init_conv_in: false
   zero_init_camera_projection: false  
 

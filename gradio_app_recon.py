@@ -156,7 +156,7 @@ def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=Fal
 def load_wonder3d_pipeline(cfg):
 
     pipeline = MVDiffusionImagePipeline.from_pretrained(
-    "./ckpts",
+    cfg.pretrained_model_name_or_path,
     torch_dtype=weight_dtype
     )
 
@@ -225,7 +225,7 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     num_views = 6
     if write_image:
         VIEWS = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
-        cur_dir = os.path.join("./outputs", f"cropsize-{crop_size}-cfg{guidance_scale:.1f}")
+        cur_dir = os.path.join("./outputs", f"cropsize-{int(crop_size)}-cfg{guidance_scale:.1f}")
 
         scene = 'scene'+datetime.now().strftime('@%Y%m%d-%H%M%S')
         scene_dir = os.path.join(cur_dir, scene)
@@ -263,7 +263,7 @@ def process_3d(mode, data_dir, guidance_scale, crop_size):
     cur_dir = os.path.dirname(os.path.abspath(__file__))
 
     subprocess.run(
-        f'cd instant-nsr-pl && python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train dataset.root_dir=../{data_dir}/cropsize-{crop_size:.1f}-cfg{guidance_scale:.1f}/ dataset.scene={scene} && cd ..',
+        f'cd instant-nsr-pl && python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train dataset.root_dir=../{data_dir}/cropsize-{int(crop_size)}-cfg{guidance_scale:.1f}/ dataset.scene={scene} && cd ..',
         shell=True,
     )
     import glob
@@ -404,7 +404,7 @@ def run_demo():
                     #     method = gr.Radio(choices=['instant-nsr-pl', 'NeuS'], label='Method (Default: instant-nsr-pl)', value='instant-nsr-pl')
                 # run_btn = gr.Button('Generate Normals and Colors', variant='primary', interactive=True)
                 run_btn = gr.Button('Reconstruct 3D model', variant='primary', interactive=True)
-                gr.Markdown("<span style='color:red'> Reconstruction may cost several minutes.</span>")
+                gr.Markdown("<span style='color:red'> Reconstruction may cost several minutes. Check results in instant-nsr-pl/exp/scene@{current-time}/ </span>")
         
         with gr.Row():
             view_1 = gr.Image(interactive=False, height=240, show_label=False)

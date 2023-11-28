@@ -156,7 +156,7 @@ def preprocess(predictor, input_image, chk_group=None, segment=True, rescale=Fal
 def load_wonder3d_pipeline(cfg):
 
     pipeline = MVDiffusionImagePipeline.from_pretrained(
-    "./wonder3D-model",
+    cfg.pretrained_model_name_or_path,
     torch_dtype=weight_dtype
     )
 
@@ -210,7 +210,7 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
 
     out = pipeline(
         imgs_in,
-        camera_embeddings,
+        # camera_embeddings,
         generator=generator,
         guidance_scale=guidance_scale,
         num_inference_steps=steps,
@@ -225,7 +225,7 @@ def run_pipeline(pipeline, cfg, single_image, guidance_scale, steps, seed, crop_
     num_views = 6
     if write_image:
         VIEWS = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
-        cur_dir = os.path.join("./outputs", f"cropsize-{crop_size}-cfg{guidance_scale:.1f}")
+        cur_dir = os.path.join("./outputs", f"cropsize-{int(crop_size)}-cfg{guidance_scale:.1f}")
 
         scene = 'scene'+datetime.now().strftime('@%Y%m%d-%H%M%S')
         scene_dir = os.path.join(cur_dir, scene)
