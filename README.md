@@ -14,7 +14,7 @@ import requests
 from PIL import Image
 import numpy as np
 from torchvision.utils import make_grid, save_image
-from diffusers import DiffusionPipeline
+from diffusers import DiffusionPipeline  # only tested on diffusers[torch]==0.19.3, may have conflicts with newer versions of diffusers
 
 def load_wonder3d_pipeline():
 
