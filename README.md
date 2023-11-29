@@ -122,7 +122,7 @@ accelerate launch --config_file 1gpu.yaml test_mvdiffusion_seq.py \
             validation_dataset.filepaths=['owl.png'] save_dir=./outputs
 ```
 
-#### Interactive inference: run your local gradio demo
+#### Interactive inference: run your local gradio demo. (Only generate normals and colors without reconstruction)
 ```bash
 python gradio_app_mv.py   # generate multi-view normals and colors
 ```
@@ -145,7 +145,7 @@ python launch.py --config configs/neuralangelo-ortho-wmask.yaml --gpu 0 --train 
 
 Our generated normals and color images are defined in orthographic views, so the reconstructed mesh is also in orthographic camera space. If you use MeshLab to view the meshes, you can click `Toggle Orthographic Camera` in `View` tab.
 
-#### Interactive inference: run your local gradio demo
+#### Interactive inference: run your local gradio demo. (First generate normals and colors, and then do reconstructions. No need to perform gradio_app_mv.py first.)
 ```bash
 python gradio_app_recon.py   
 ```
