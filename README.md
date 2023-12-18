@@ -1,3 +1,4 @@
+**中文版本 [中文](README_zh.md)**
 # Wonder3D
 Single Image to 3D using Cross-Domain Diffusion
 ## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) | [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo) | [Colab from @camenduru](https://github.com/camenduru/Wonder3D-colab)
