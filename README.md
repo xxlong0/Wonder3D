@@ -10,6 +10,8 @@ Wonder3D reconstructs highly-detailed textured meshes from a single-view image i
 ## Usage
 ```bash
 
+# First clone the repo, and use the commands in the repo
+
 import torch
 import requests
 from PIL import Image
@@ -83,6 +85,8 @@ Please switch to branch `main-windows` to see details of windows setup.
 ### Inference
 1. Optional. If you have troubles to connect to huggingface. Make sure you have downloaded the following models.
 Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/Ej7fMT1PwXtKvsELTvDuzuMBebQXEkmf2IwhSjBWtKAJiA) and into the root folder.
+
+If you are in mainland China, you may download via [aliyun](https://www.alipan.com/s/T4rLUNAVq6V).
 
 ```bash
 Wonder3D
