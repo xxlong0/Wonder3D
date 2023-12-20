@@ -85,6 +85,8 @@ pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/to
 1. 可选。如果您在连接到Hugging Face时遇到问题，请确保已下载以下模型。
 下载[checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/Ej7fMT1PwXtKvsELTvDuzuMBebQXEkmf2IwhSjBWtKAJiA)并放入根文件夹中。
 
+国内用户可下载： [阿里云盘](https://www.alipan.com/s/T4rLUNAVq6V)
+
 ```bash
 Wonder3D
 |-- ckpts
