@@ -20,11 +20,11 @@ RUN apt-get update && \
 
 # update package lists and install git, wget, vim, libgl1-mesa-glx, and libglib2.0-0
 RUN apt-get update && \
-    apt-get install -y git wget vim libgl1-mesa-glx libglib2.0-0 zip unzip
+    apt-get install -y git wget vim libgl1-mesa-glx libglib2.0-0 unzip
 
 # clone the repository
 # TODO need to change the git repo link after pull request
-RUN git clone https://github.com/aThinkingNeal/Wonder3D.git
+RUN git clone https://github.com/aThinkingNeal/Wonder3D.git && cd /workspace/Wonder3D && git checkout docker-setup
 
 # change the working directory to the repository
 WORKDIR /workspace/Wonder3D
@@ -45,8 +45,6 @@ RUN conda init bash
 RUN conda create -n wonder3d python=3.8 && echo "source activate wonder3d" > ~/.bashrc
 ENV PATH /workspace/miniconda3/envs/wonder3d/bin:$PATH
 
-# change to the docker-setup branch
-RUN git checkout docker-setup
 
 # install pytorch 1.13.1 and torchvision
 RUN pip install docker/requirements.txt
