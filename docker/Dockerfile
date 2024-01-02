@@ -26,15 +26,16 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &
     ./Miniconda3-latest-Linux-x86_64.sh -b -p /workspace/miniconda3 && \
     rm Miniconda3-latest-Linux-x86_64.sh
 
-# create and activate conda environment
-RUN conda create -n wonder3d python=3.8 && echo "source activate wonder3d" > ~/.bashrc
-ENV PATH /workspace/miniconda3/envs/wonder3d/bin:$PATH
+# update PATH environment variable
+ENV PATH="/workspace/miniconda3/bin:${PATH}"
 
 # initialize conda
 RUN conda init bash
 
-# update PATH environment variable
-ENV PATH="/workspace/miniconda3/bin:${PATH}"
+# create and activate conda environment
+RUN conda create -n wonder3d python=3.8 && echo "source activate wonder3d" > ~/.bashrc
+ENV PATH /workspace/miniconda3/envs/wonder3d/bin:$PATH
+
 
 # clone the repository
 # TODO need to change the git repo link after pull request
