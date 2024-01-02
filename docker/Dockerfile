@@ -52,7 +52,7 @@ RUN pip install -r docker/requirements.txt
 # install the specific version of nerfacc corresponding to torch 1.13.0 and cuda 11.7, otherwise the nerfacc will freeze during cuda setup
 RUN pip install nerfacc==0.3.3 -f https://nerfacc-bucket.s3.us-west-2.amazonaws.com/whl/torch-1.13.0_cu117.html
 
-# install tiny cuda
+# install tiny cuda during docker setup will cause error, need to install it manually in the container
 # RUN pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
 
