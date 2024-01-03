@@ -33,3 +33,4 @@ rembg
 segment_anything
 gradio==3.50.2
 triton
+rich

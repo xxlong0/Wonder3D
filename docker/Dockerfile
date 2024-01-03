@@ -3,7 +3,7 @@ FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
 LABEL name="Wonder3D" \
     maintainer="Tiancheng <athinkingneal@gmail.com>" \
-    lastupdate="2024-01-02" 
+    lastupdate="2024-01-03" 
 
 # create workspace folder and set it as working directory
 RUN mkdir -p /workspace
