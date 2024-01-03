@@ -60,7 +60,7 @@ The repo is still being under construction, thanks for your patience.
 - [x] Detailed tutorial.
 - [x] GUI demo for mesh reconstruction
 - [x] Windows support
-- [ ] Docker support
+- [x] Docker support
 
 ## Schedule
 - [x] Inference code and pretrained models.
@@ -81,6 +81,8 @@ pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/to
 
 Please switch to branch `main-windows` to see details of windows setup.
 
+#### Docker Setup
+see [docker/README.MD](docker/README.md)
 
 ### Inference
 1. Optional. If you have troubles to connect to huggingface. Make sure you have downloaded the following models.
