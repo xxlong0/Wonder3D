@@ -1,0 +1,36 @@
+--extra-index-url https://download.pytorch.org/whl/cu117
+
+# nerfacc==0.3.3, nefacc needs to be installed from the specific location
+# see installation part in this link: https://github.com/nerfstudio-project/nerfacc
+
+torch==1.13.1+cu117 
+torchvision==0.14.1+cu117
+diffusers[torch]==0.19.3
+xformers==0.0.16
+transformers>=4.25.1
+bitsandbytes==0.35.4
+decord==0.6.0
+pytorch-lightning<2
+omegaconf==2.2.3
+trimesh==3.9.8
+pyhocon==0.3.57
+icecream==2.1.0
+PyMCubes==0.1.2
+accelerate
+modelcards
+einops
+ftfy
+piq
+matplotlib
+opencv-python
+imageio
+imageio-ffmpeg
+scipy
+pyransac3d
+torch_efficient_distloss
+tensorboard
+rembg
+segment_anything
+gradio==3.50.2
+triton
+rich
