@@ -3,7 +3,7 @@ FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
 LABEL name="Wonder3D" \
     maintainer="Tiancheng <athinkingneal@gmail.com>" \
-    lastupdate="2024-01-03" 
+    lastupdate="2024-01-05" 
 
 # create workspace folder and set it as working directory
 RUN mkdir -p /workspace
@@ -38,10 +38,8 @@ ENV PATH /workspace/miniconda3/envs/wonder3d/bin:$PATH
 
 
 # clone the repository
-# TODO need to change the git repo link after pull request
-RUN git clone https://github.com/aThinkingNeal/Wonder3D.git && \
-    cd /workspace/Wonder3D && \
-    git checkout docker-setup
+RUN git clone https://github.com/xxlong0/Wonder3D.git && \
+    cd /workspace/Wonder3D 
 
 # change the working directory to the repository
 WORKDIR /workspace/Wonder3D
