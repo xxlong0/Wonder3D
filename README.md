@@ -84,6 +84,9 @@ Please switch to branch `main-windows` to see details of windows setup.
 #### Docker Setup
 see [docker/README.MD](docker/README.md)
 
+### Training (complete soon)
+Here we provide the two training scripts. The training has two stages, first train multi-view attentions, and then fix weights and train new added cross-domain attentions.
+
 ### Inference
 1. Optional. If you have troubles to connect to huggingface. Make sure you have downloaded the following models.
 Download the [checkpoints](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/Ej7fMT1PwXtKvsELTvDuzuMBebQXEkmf2IwhSjBWtKAJiA) and into the root folder.
