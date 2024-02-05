@@ -53,19 +53,10 @@ save_image(result, 'result.png')
 ## Collaborations
 Our overarching mission is to enhance the speed, affordability, and quality of 3D AIGC, making the creation of 3D content accessible to all. While significant progress has been achieved in the recent years, we acknowledge there is still a substantial journey ahead. We enthusiastically invite you to engage in discussions and explore potential collaborations in any capacity. <span style="color:red">**If you're interested in connecting or partnering with us, please don't hesitate to reach out via email (xxlong@connect.hku.hk)**</span> .
 
-## More features
+## News
 
-The repo is still being under construction, thanks for your patience. 
-- [x] Local gradio demo.
-- [x] Detailed tutorial.
-- [x] GUI demo for mesh reconstruction
-- [x] Windows support
-- [x] Docker support
-
-## Schedule
-- [x] Inference code and pretrained models.
-- [x] Huggingface demo.
-- [ ] New model with higher resolution.
+- 2024.02 We release the training codes. Welcome to train wonder3D on your personal data.
+- 2023.10 We release the inference model and codes.
 
 
 ### Preparation for inference
@@ -84,8 +75,23 @@ Please switch to branch `main-windows` to see details of windows setup.
 #### Docker Setup
 see [docker/README.MD](docker/README.md)
 
-### Training (complete soon)
-Here we provide the two training scripts. The training has two stages, first train multi-view attentions, and then fix weights and train new added cross-domain attentions.
+### Training
+Here we provide two training scripts `train_mvdiffusion_image.py` and `train_mvdiffusion_joint.py`. 
+
+The training has two stages: 1) first train multi-view attentions by randomly taking normal or color flag; 2) add cross-domain attention modules into the SD model, and only optimize the newly added parameters.
+
+You need to modify `root_dir` that contain the data of the config files `configs/train/stage1-mix-6views-lvis.yaml` and `configs/train/stage2-joint-6views-lvis.yaml` accordingly.
+
+```
+# stage 1:
+accelerate launch --config_file 1gpu.yaml train_mvdiffusion_image.py --config configs/train/stage1-mix-6views-lvis.yaml
+
+# stage 2
+accelerate launch --config_file 1gpu.yaml train_mvdiffusion_joint.py --config configs/train/stage2-joint-6views-lvis.yaml
+```
+
+### Prepare the training data
+Complete soon.
 
 ### Inference
 1. Optional. If you have troubles to connect to huggingface. Make sure you have downloaded the following models.
