@@ -190,7 +190,7 @@ A: Unlike that the prior works such as Zero123, SyncDreamer and One2345 adopt ob
 
 Q: The focal length of the generated views?
 
-A: We assume the input images are captured by orthographic camera, so the generated views are also in orthographic space. This design enables our model to keep strong generlaization on unreal images, but sometimes it may suffer from focal lens distortions on real-captured images.
+A: We assume the input images are captured by orthographic camera, so the generated views are also in orthographic space. This design enables our model to keep strong generalization on unreal images, but sometimes it may suffer from focal lens distortions on real-captured images.
 ## Acknowledgement
 We have intensively borrow codes from the following repositories. Many thanks to the authors for sharing their codes.
 - [stable diffusion](https://github.com/CompVis/stable-diffusion)
