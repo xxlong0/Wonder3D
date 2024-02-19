@@ -91,7 +91,7 @@ accelerate launch --config_file 1gpu.yaml train_mvdiffusion_joint.py --config co
 ```
 
 ### Prepare the training data
-Complete soon.
+see [render_codes/README.md](render_codes/README.md).
 
 ### Inference
 1. Optional. If you have troubles to connect to huggingface. Make sure you have downloaded the following models.
