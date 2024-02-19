@@ -5,11 +5,12 @@ The rendering codes are mainly based on [BlenderProc](https://github.com/DLR-RM/
 BlenderProc use blender Cycle engine to render the images by default, which may meet long-time hanging problem in some specific GPUs (like A800, tested already)
 
 `
+cd ./render_codes
 pip install -r requirements.txt
 `
 
 ## How to use the code
-Here we provide two rendering scripts `blenderProc_ortho.py` and `blenderProc_pinhole.py`, which use **orthogonal** camera and **perspective** camera to render the objects respectively. 
+Here we provide two rendering scripts `blenderProc_ortho.py` and `blenderProc_persp.py`, which use **orthogonal** camera and **perspective** camera to render the objects respectively. 
 
 ### Use `blenderProc_ortho.py` to render images of a single object
 `
@@ -26,7 +27,7 @@ Here we provide two rendering scripts `blenderProc_ortho.py` and `blenderProc_pi
 Here `--view` denotes a tag for the rendering images, since you may render an object multiple times, `--ortho_scale` decides the scaling of rendered object in the image, `--random_pose` will randomly rotate the object before rendering.
 
 
-### Use `blenderProc_.py` to render images of a single object
+### Use `blenderProc_persp.py` to render images of a single object
 
 `
  blenderproc run --blender-install-path /mnt/pfs/users/longxiaoxiao/workplace/blender 
