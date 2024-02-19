@@ -2,7 +2,7 @@
 
 ## Environment
 The rendering codes are mainly based on [BlenderProc](https://github.com/DLR-RM/BlenderProc). Thanks for the great tool.
-BlenderProc use blender Cycle engine to render the images by default, which may meet long-time hanging problem in some specific GPUs (like A800, tested already)
+BlenderProc uses blender Cycle engine to render the images by default, which may meet long-time hanging problem in some specific GPUs (like A800, tested already)
 
 `
 cd ./render_codes
