@@ -191,6 +191,15 @@ A: Unlike that the prior works such as Zero123, SyncDreamer and One2345 adopt ob
 Q: The focal length of the generated views?
 
 A: We assume the input images are captured by orthographic camera, so the generated views are also in orthographic space. This design enables our model to keep strong generlaization on unreal images, but sometimes it may suffer from focal lens distortions on real-captured images.
+
+## Details about the camera system and camera poses
+![](assets/coordinate.png)
+In practice, the target object is assumed to be placed along the gravity direction.
+1) **Canonical coordinate system.** Some prior works (e.g. MVDream and SyncDreamer) adopt a shared canonical system for all objects, whose axis $Z_c$ shares the same direction with gravity (a). 
+2) **Input view related system.** Wonder3D adopts an independent coordinate system for each object that is related to the input view.
+Its $Z_v$ and $X_v$ axes are aligned with the UV dimension of 2D input image space, and its $Y_v$ axis is vertical to the 2D image plane and passes through the center of ROI (Region of Interests) (b).
+3) **Camera poses.** Wonder3D outputs 6 views $\{v_i, i=0,...,5\}$ that are sampled at the $X_vOY_v$ plane of the input-view related system with a fixed radius, where the front view $v_0$ is initialized as input view and the other views are sampled with pre-defined azimuth degrees (see (b)).
+
 ## Acknowledgement
 We have intensively borrow codes from the following repositories. Many thanks to the authors for sharing their codes.
 - [stable diffusion](https://github.com/CompVis/stable-diffusion)
