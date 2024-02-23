@@ -84,10 +84,10 @@ You need to modify `root_dir` that contain the data of the config files `configs
 
 ```
 # stage 1:
-accelerate launch --config_file 1gpu.yaml train_mvdiffusion_image.py --config configs/train/stage1-mix-6views-lvis.yaml
+accelerate launch --config_file 8gpu.yaml train_mvdiffusion_image.py --config configs/train/stage1-mix-6views-lvis.yaml
 
 # stage 2
-accelerate launch --config_file 1gpu.yaml train_mvdiffusion_joint.py --config configs/train/stage2-joint-6views-lvis.yaml
+accelerate launch --config_file 8gpu.yaml train_mvdiffusion_joint.py --config configs/train/stage2-joint-6views-lvis.yaml
 ```
 
 ### Prepare the training data
