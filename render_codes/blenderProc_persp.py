@@ -408,11 +408,11 @@ def save_images(object_file: str, viewidx: int) -> None:
         
         depth_map = np.uint16((depth_map / 10) * 65535)
 
-        normal_map = data['normals'][index][:, :, ::-1]*255
+        normal_map = data['normals'][index]*255
 
         valid_mask = valid_mask.astype(np.int8)*255
 
-        color_map = data['colors'][index][:, :, ::-1]
+        color_map = data['colors'][index]
         color_map = np.concatenate([color_map, valid_mask[:, :, None]], axis=-1)
 
         Image.fromarray(color_map.astype(np.uint8)).save(
