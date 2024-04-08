@@ -101,7 +101,7 @@ unet_from_pretrained_kwargs:
   num_views: 6
   sample_size: 32
   zero_init_conv_in: true
-  zero_init_camera_projection: true
+  zero_init_camera_projection: false
   cd_attention_last: false
   cd_attention_mid: false
   multiview_attention: true
