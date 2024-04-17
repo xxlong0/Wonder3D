@@ -1359,9 +1359,9 @@ class UNetMV2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixi
                 if out_channels == 8: # copy for the last 4 channels
                     model.conv_out.weight.data[:, 4:] = conv_out_weight
             
-            if zero_init_camera_projection:
-                for p in model.class_embedding.parameters():
-                    torch.nn.init.zeros_(p)
+            # if zero_init_camera_projection:
+            #     for p in model.class_embedding.parameters():
+            #         torch.nn.init.zeros_(p)
 
             loading_info = {
                 "missing_keys": missing_keys,
