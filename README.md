@@ -10,6 +10,7 @@ Wonder3D reconstructs highly-detailed textured meshes from a single-view image i
 ## News
 - Fixed a severe training bug. The "zero_init_camera_projection" in 'configs/train/stage1-mix-6views-lvis.yaml' should be False. Otherwise, the domain control and pose control will be invalid in the training.
 - 2024.03.19 Checkout our new model [GeoWizard](https://github.com/fuxiao0719/GeoWizard) that jointly produces depth and normal with high fidelity from single images.
+- 2024.05.24 We release a large 3D native diffusion model [CraftsMan3D](https://github.com/wyysf-98/CraftsMan) that is directly trained on 3D representation and therefore is capable of producing complex structures.
 
 ## Usage
 ```bash
