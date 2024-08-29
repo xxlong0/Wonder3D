@@ -293,7 +293,24 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
                 camera_embedding
             ], dim=0)
         
-        return camera_embedding    
+        return camera_embedding
+
+    def reshape_to_cd_input(self, input):
+        # reshape input for cross-domain attention
+        input_norm_uc, input_rgb_uc, input_norm_cond, input_rgb_cond = torch.chunk(
+            input, dim=0, chunks=4)
+        input = torch.cat(
+            [input_norm_uc, input_norm_cond, input_rgb_uc, input_rgb_cond], dim=0)
+        return input
+
+    def reshape_to_cfg_output(self, output):
+        # reshape input for cfg
+        output_norm_uc, output_norm_cond, output_rgb_uc, output_rgb_cond = torch.chunk(
+            output, dim=0, chunks=4)
+        output = torch.cat(
+            [output_norm_uc, output_rgb_uc, output_norm_cond, output_rgb_cond],
+            dim=0)
+        return output
 
     @torch.no_grad()
     def __call__(
@@ -460,9 +477,15 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
         # 7. Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
         with self.progress_bar(total=num_inference_steps) as progress_bar:
+            if do_classifier_free_guidance:
+                image_embeddings = self.reshape_to_cd_input(image_embeddings)
+                camera_embeddings = self.reshape_to_cd_input(camera_embeddings)
+                image_latents = self.reshape_to_cd_input(image_latents)
             for i, t in enumerate(timesteps):
                 # expand the latents if we are doing classifier free guidance
                 latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+                if do_classifier_free_guidance:
+                    latent_model_input = self.reshape_to_cd_input(latent_model_input)
                 latent_model_input = torch.cat([
                     latent_model_input, image_latents
                 ], dim=1)
@@ -473,6 +496,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
 
                 # perform guidance
                 if do_classifier_free_guidance:
+                    noise_pred = self.reshape_to_cfg_output(noise_pred)
                     noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
                     noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
 

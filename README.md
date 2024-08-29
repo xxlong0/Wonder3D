@@ -8,6 +8,11 @@ Single Image to 3D using Cross-Domain Diffusion (CVPR 2024 Highlight)
 Wonder3D reconstructs highly-detailed textured meshes from a single-view image in only 2 ∼ 3 minutes. Wonder3D first generates consistent multi-view normal maps with corresponding color images via a cross-domain diffusion model, and then leverages a novel normal fusion method to achieve fast and high-quality reconstruction.
 
 ## News
+- 2024.08.29 **<span style="color:red">Fixed an issue in '/mvdiffusion/pipelines/pipeline_mvdiffusion_image' where cross-domain attention did not work correctly during classifier-free guidance (CFG) inference, causing misalignment between the RGB and normal generation results.</span>** To address this issue, we need to place the RGB and normal domain inputs in the first and second halves of the batch, respectively, before feeding them into the model. This approach differs from the typical CFG method, which separates unconditional and conditional inputs into the first and second halves of the batch. The results before and after the bug fix are shown below:
+<div align="center">
+ <img width="600" src="assets/bug_fixed.png">
+</div>
+
 - Fixed a severe training bug. The "zero_init_camera_projection" in 'configs/train/stage1-mix-6views-lvis.yaml' should be False. Otherwise, the domain control and pose control will be invalid in the training.
 - 2024.03.19 Checkout our new model [GeoWizard](https://github.com/fuxiao0719/GeoWizard) that jointly produces depth and normal with high fidelity from single images.
 - 2024.05.24 We release a large 3D native diffusion model [CraftsMan3D](https://github.com/wyysf-98/CraftsMan) that is directly trained on 3D representation and therefore is capable of producing complex structures.

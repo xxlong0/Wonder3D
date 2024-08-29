@@ -22,7 +22,7 @@ pipe_kwargs:
   camera_embedding_type: 'e_de_da_sincos'
   num_views: 6
 
-validation_guidance_scales: [1.0]
+validation_guidance_scales: [1.0, 3.0]
 pipe_validation_kwargs:
   eta: 1.0
 validation_grid_nrow: 6
