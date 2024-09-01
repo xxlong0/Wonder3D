@@ -12,6 +12,13 @@ then run
 
 `docker run --gpus all -it wonder3d/deploy:cuda11.7 bash`
 
+## Install Tiny Cudann
+
+After you start the container, run the following command to install tiny cudann. Somehow this pip installation can not be done during the docker build, so you have to do it manually after the docker is started.
+
+`pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
+
+Now you should be good to go, good luck and have fun :)
 
 ## Nvidia Container Toolkit setup
 
@@ -47,11 +54,3 @@ now you can run the following command:
 `docker run --gpus all -it wonder3d/deploy:cuda11.7 bash`
 
 
-## Install Tiny Cudann
-
-After you start the container, run the following command to install tiny cudann. Somehow this pip installation can not be done during the docker build, so you have to do it manually after the docker is started.
-
-`pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
-
-
-Now you should be good to go, good luck and have fun :)
