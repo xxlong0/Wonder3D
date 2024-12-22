@@ -1,6 +1,8 @@
-# Wonder3D++
-Single Image to 3D using Cross-Domain Diffusion (CVPR 2024 Highlight)
-## [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo)
+# Wonder3D -> Wonder3D++
+Single Image to 3D using Cross-Domain Diffusion (CVPR 2024 Highlight).
+
+Now extent to **Wonder3D++**!
+## [Paper](https://arxiv.org/abs/2310.15008) | [Project page](https://www.xxlong.site/Wonder3D/) | [Hugging Face Demo](https://huggingface.co/spaces/flamehaze1115/Wonder3D-demo) | [Colab from @camenduru](https://github.com/camenduru/Wonder3D-colab)
 
 ![](assets/teaser.png)
 
