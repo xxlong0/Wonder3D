@@ -18,6 +18,8 @@ from math import radians
 import cv2
 from scipy.spatial.transform import Rotation as R
 import PIL.Image as Image
+import subprocess
+
 
 parser = argparse.ArgumentParser(description='Renders given obj file by rotation a camera around it.')
 parser.add_argument('--view', type=int, default=0,
@@ -39,7 +41,7 @@ parser.add_argument('--output_folder', type=str, default='output',
 #                     help='Format of files generated. Either PNG or OPEN_EXR')
 parser.add_argument('--resolution', type=int, default=512,
                     help='Resolution of the images.')
-parser.add_argument('--ortho_scale', type=float, default=1.25,
+parser.add_argument('--ortho_scale', type=float, default=1.35,
                     help='ortho rendering usage; how large the object is')
 parser.add_argument('--object_uid', type=str, default=None)
 
@@ -47,10 +49,11 @@ parser.add_argument('--random_pose', action='store_true',
                     help='whether randomly rotate the poses to be rendered')
 
 parser.add_argument('--reset_object_euler', action='store_true',
-                    help='set object rotation euler to 0')      
+                    help='set object rotation euler to 0')
 
 # argv = sys.argv[sys.argv.index("--") + 1:]
 args = parser.parse_args()
+
 
 def scene_bbox(single_obj=None, ignore_matrix=False):
     bbox_min = (math.inf,) * 3
@@ -84,8 +87,8 @@ def normalize_scene():
     bbox_min, bbox_max = scene_bbox()
 
     dxyz = bbox_max - bbox_min
-    dist = np.sqrt(dxyz[0]**2+ dxyz[1]**2+dxyz[2]**2)
-#    print("dxyz: ",dxyz, "dist: ", dist)
+    dist = np.sqrt(dxyz[0] ** 2 + dxyz[1] ** 2 + dxyz[2] ** 2)
+    #    print("dxyz: ",dxyz, "dist: ", dist)
     # scale = 1 / max(bbox_max - bbox_min)
     scale = 1. / dist
     for obj in scene_root_objects():
@@ -100,8 +103,9 @@ def normalize_scene():
 
     return scale, offset
 
+
 def get_a_camera_location(loc):
-    location = Vector([loc[0],loc[1],loc[2]])
+    location = Vector([loc[0], loc[1], loc[2]])
     direction = - location
     rot_quat = direction.to_track_quat('-Z', 'Y')
     rotation_euler = rot_quat.to_euler()
@@ -116,7 +120,7 @@ def get_3x4_RT_matrix_from_blender(cam):
     #     (0, 1, 0),
     #     (0, 0, 1)))
 
-    # Transpose since the rotation is object rotation, 
+    # Transpose since the rotation is object rotation,
     # and we want coordinate rotation
     # R_world2bcam = cam.rotation_euler.to_matrix().transposed()
     # T_world2bcam = -1*R_world2bcam @ location
@@ -127,8 +131,8 @@ def get_3x4_RT_matrix_from_blender(cam):
 
     # Convert camera location to translation vector used in coordinate changes
     # T_world2bcam = -1*R_world2bcam @ cam.location
-    # Use location from matrix_world to account for constraints:     
-    T_world2bcam = -1*R_world2bcam @ location
+    # Use location from matrix_world to account for constraints:
+    T_world2bcam = -1 * R_world2bcam @ location
 
     # # Build the coordinate transform matrix from world to computer vision camera
     # R_world2cv = R_bcam2cv@R_world2bcam
@@ -139,44 +143,42 @@ def get_3x4_RT_matrix_from_blender(cam):
         R_world2bcam[0][:] + (T_world2bcam[0],),
         R_world2bcam[1][:] + (T_world2bcam[1],),
         R_world2bcam[2][:] + (T_world2bcam[2],)
-        ))
+    ))
     return RT
 
 def get_calibration_matrix_K_from_blender(mode='simple'):
-
     scene = bpy.context.scene
 
     scale = scene.render.resolution_percentage / 100
-    width = scene.render.resolution_x * scale # px
-    height = scene.render.resolution_y * scale # px
+    width = scene.render.resolution_x * scale  # px
+    height = scene.render.resolution_y * scale  # px
 
     camdata = scene.camera.data
 
     if mode == 'simple':
-
         aspect_ratio = width / height
-        K = np.zeros((3,3), dtype=np.float32)
+        K = np.zeros((3, 3), dtype=np.float32)
         K[0][0] = width / 2 / np.tan(camdata.angle / 2)
         K[1][1] = height / 2. / np.tan(camdata.angle / 2) * aspect_ratio
         K[0][2] = width / 2.
         K[1][2] = height / 2.
         K[2][2] = 1.
         K.transpose()
-    
+
     if mode == 'complete':
 
-        focal = camdata.lens # mm
-        sensor_width = camdata.sensor_width # mm
-        sensor_height = camdata.sensor_height # mm
+        focal = camdata.lens  # mm
+        sensor_width = camdata.sensor_width  # mm
+        sensor_height = camdata.sensor_height  # mm
         pixel_aspect_ratio = scene.render.pixel_aspect_x / scene.render.pixel_aspect_y
 
         if (camdata.sensor_fit == 'VERTICAL'):
-            # the sensor height is fixed (sensor fit is horizontal), 
+            # the sensor height is fixed (sensor fit is horizontal),
             # the sensor width is effectively changed with the pixel aspect ratio
-            s_u = width / sensor_width / pixel_aspect_ratio 
+            s_u = width / sensor_width / pixel_aspect_ratio
             s_v = height / sensor_height
-        else: # 'HORIZONTAL' and 'AUTO'
-            # the sensor width is fixed (sensor fit is horizontal), 
+        else:  # 'HORIZONTAL' and 'AUTO'
+            # the sensor width is fixed (sensor fit is horizontal),
             # the sensor height is effectively changed with the pixel aspect ratio
             pixel_aspect_ratio = scene.render.pixel_aspect_x / scene.render.pixel_aspect_y
             s_u = width / sensor_width
@@ -187,14 +189,14 @@ def get_calibration_matrix_K_from_blender(mode='simple'):
         alpha_v = focal * s_v
         u_0 = width / 2
         v_0 = height / 2
-        skew = 0 # only use rectangular pixels
+        skew = 0  # only use rectangular pixels
 
         K = np.array([
-            [alpha_u,    skew, u_0],
-            [      0, alpha_v, v_0],
-            [      0,       0,   1]
+            [alpha_u, skew, u_0],
+            [0, alpha_v, v_0],
+            [0, 0, 1]
         ], dtype=np.float32)
-    
+
     return K
 
 # load the glb model
@@ -210,6 +212,7 @@ def load_object(object_path: str) -> None:
         bpy.ops.import_mesh.ply(filepath=object_path)
     else:
         raise ValueError(f"Unsupported file type: {object_path}")
+
 
 def reset_scene() -> None:
     """Resets the scene to a clean state."""
@@ -227,6 +230,7 @@ def reset_scene() -> None:
     for image in bpy.data.images:
         bpy.data.images.remove(image, do_unlink=True)
 
+
 bproc.init()
 
 world_tree = bpy.context.scene.world.node_tree
@@ -238,10 +242,10 @@ back_node.inputs['Strength'].default_value = 0.5
 # Place camera
 
 bpy.data.cameras[0].type = "ORTHO"
-bpy.data.cameras[0].ortho_scale = args.ortho_scale   
+bpy.data.cameras[0].ortho_scale = args.ortho_scale
 # cam = bpy.context.scene.objects['Camera']
 # cam.data.type = "ORTHO"
-# cam.data.ortho_scale = args.ortho_scale   
+# cam.data.ortho_scale = args.ortho_scale
 print("ortho scale ", args.ortho_scale)
 
 # cam_constraint = cam.constraints.new(type='TRACK_TO')
@@ -249,7 +253,7 @@ print("ortho scale ", args.ortho_scale)
 # cam_constraint.up_axis = 'UP_Y'
 
 
-#Make light just directional, disable shadows.
+# Make light just directional, disable shadows.
 light = bproc.types.Light(name='Light', light_type='SUN')
 light = bpy.data.lights['Light']
 light.use_shadow = False
@@ -257,33 +261,32 @@ light.use_shadow = False
 light.specular_factor = 1.0
 light.energy = 5.0
 
-#Add another light source so stuff facing away from light is not completely dark
+# Add another light source so stuff facing away from light is not completely dark
 light2 = bproc.types.Light(name='Light2', light_type='SUN')
 light2 = bpy.data.lights['Light2']
 light2.use_shadow = False
 light2.specular_factor = 1.0
-light2.energy = 3 #0.015
+light2.energy = 3  # 0.015
 bpy.data.objects['Light2'].rotation_euler = bpy.data.objects['Light'].rotation_euler
 bpy.data.objects['Light2'].rotation_euler[0] += 180
 
-#Add another light source so stuff facing away from light is not completely dark
+# Add another light source so stuff facing away from light is not completely dark
 light3 = bproc.types.Light(name='light3', light_type='SUN')
 light3 = bpy.data.lights['light3']
 light3.use_shadow = False
 light3.specular_factor = 1.0
-light3.energy = 3 #0.015
+light3.energy = 3  # 0.015
 bpy.data.objects['light3'].rotation_euler = bpy.data.objects['Light'].rotation_euler
 bpy.data.objects['light3'].rotation_euler[0] += 90
 
-#Add another light source so stuff facing away from light is not completely dark
+# Add another light source so stuff facing away from light is not completely dark
 light4 = bproc.types.Light(name='light4', light_type='SUN')
 light4 = bpy.data.lights['light4']
 light4.use_shadow = False
 light4.specular_factor = 1.0
-light4.energy = 3 #0.015
+light4.energy = 3  # 0.015
 bpy.data.objects['light4'].rotation_euler = bpy.data.objects['Light'].rotation_euler
 bpy.data.objects['light4'].rotation_euler[0] += -90
-
 
 
 # Get all camera objects in the scene
@@ -294,6 +297,7 @@ def get_camera_objects():
 
 VIEWS = ["_front", "_back", "_right", "_left", "_front_right", "_front_left", "_back_right", "_back_left", "_top"]
 EXTRA_VIEWS = ["_front_right_top", "_front_left_top", "_back_right_top", "_back_left_top", ]
+
 
 def save_images(object_file: str, viewidx: int) -> None:
     global VIEWS
@@ -306,18 +310,20 @@ def save_images(object_file: str, viewidx: int) -> None:
         object_uid = os.path.basename(object_file).split(".")[0]
     else:
         object_uid = args.object_uid
+
+    base_output_folder, subdir = args.output_folder, object_uid[:2]
     args.output_folder = os.path.join(args.output_folder, object_uid[:2])
     os.makedirs(os.path.join(args.output_folder, object_uid), exist_ok=True)
-    
+
     if args.reset_object_euler:
         for obj in scene_root_objects():
             obj.rotation_euler[0] = 0  # don't know why
         bpy.ops.object.select_all(action="DESELECT")
 
-    scale , offset = normalize_scene()
+    scale, offset = normalize_scene()
 
     Scale_path = os.path.join(args.output_folder, object_uid, "scale_offset_matrix.txt")
-    np.savetxt(Scale_path, [scale]+list(offset)+[args.ortho_scale])
+    np.savetxt(Scale_path, [scale] + list(offset) + [args.ortho_scale])
 
     try:
         # some objects' normals are affected by textures
@@ -325,35 +331,36 @@ def save_images(object_file: str, viewidx: int) -> None:
         for obj in mesh_objects:
             print("removing invalid normals")
             for mat in obj.get_materials():
-                mat.set_principled_shader_value("Normal", [1,1,1])
+                mat.set_principled_shader_value("Normal", [1, 1, 1])
     except:
         print("don't know why")
-    
+
     cam_empty = bpy.data.objects.new("Empty", None)
     cam_empty.location = (0, 0, 0)
     bpy.context.scene.collection.objects.link(cam_empty)
-    
+
     radius = 2.0
-    
+
     camera_locations = [
-        np.array([0,-radius,0]),  # camera_front
-        np.array([0,radius,0]),  # camera back
-        np.array([radius,0,0]),  # camera right
-        np.array([-radius,0,0]), # camera left
-        np.array([radius,-radius,0]) / np.sqrt(2.) ,  # camera_front_right
-        np.array([-radius,-radius,0]) / np.sqrt(2.),  # camera front left
-        np.array([radius,radius,0]) / np.sqrt(2.),  # camera back right
-        np.array([-radius,radius,0]) / np.sqrt(2.),  # camera back left
-        np.array([0,0,radius]),  # camera top
-        np.array([radius,-radius,radius]) / np.sqrt(3.) ,  # camera_front_right_top
-        np.array([-radius,-radius,radius]) / np.sqrt(3.),  # camera front left top
-        np.array([radius,radius,radius]) / np.sqrt(3.),  # camera back right top
-        np.array([-radius,radius,radius]) / np.sqrt(3.),  # camera back left top
-        ] 
+        np.array([0, -radius, 0]),  # camera_front
+        np.array([0, radius, 0]),  # camera back
+        np.array([radius, 0, 0]),  # camera right
+        np.array([-radius, 0, 0]),  # camera left
+        np.array([radius, -radius, 0]) / np.sqrt(2.),  # camera_front_right
+        np.array([-radius, -radius, 0]) / np.sqrt(2.),  # camera front left
+        np.array([radius, radius, 0]) / np.sqrt(2.),  # camera back right
+        np.array([-radius, radius, 0]) / np.sqrt(2.),  # camera back left
+        np.array([0, 0, radius]),  # camera top
+        np.array([radius, -radius, radius]) / np.sqrt(3.),  # camera_front_right_top
+        np.array([-radius, -radius, radius]) / np.sqrt(3.),  # camera front left top
+        np.array([radius, radius, radius]) / np.sqrt(3.),  # camera back right top
+        np.array([-radius, radius, radius]) / np.sqrt(3.),  # camera back left top
+    ]
 
     for location in camera_locations:
-        _location,_rotation = get_a_camera_location(location)
-        bpy.ops.object.camera_add(enter_editmode=False, align='VIEW', location=_location, rotation=_rotation,scale=(1, 1, 1))
+        _location, _rotation = get_a_camera_location(location)
+        bpy.ops.object.camera_add(enter_editmode=False, align='VIEW', location=_location, rotation=_rotation,
+                                  scale=(1, 1, 1))
         _camera = bpy.context.selected_objects[0]
         _constraint = _camera.constraints.new(type='TRACK_TO')
         _constraint.track_axis = 'TRACK_NEGATIVE_Z'
@@ -366,33 +373,48 @@ def save_images(object_file: str, viewidx: int) -> None:
 
     bpy.ops.object.select_all(action='DESELECT')
     cam_empty.select_set(True)
-    
-    if args.random_pose :
+    # Path to the rotate.txt file
+    rotate_path = os.path.join(args.output_folder, object_uid, "rotate.txt")
+
+    if args.random_pose:
         print("random poses")
         delta_z = np.random.uniform(-60, 60, 1)  # left right rotate
         delta_x = np.random.uniform(-15, 30, 1)  # up and down rotate
-        delta_y = 0
+        delta_y = 0  # This is a single value, so no need for np.random.uniform
+
+        # Combine the deltas into an array
+        deltas = np.array([delta_z, delta_x, delta_y]).flatten()
+
+        # Save the deltas to the file
+        np.savetxt(rotate_path, deltas)
+
     else:
-        print("fix poses")
-        delta_z = 0
-        delta_x = 0
-        delta_y = 0 
-        
-    bpy.ops.transform.rotate(value=math.radians(delta_z),orient_axis='Z',orient_type='VIEW')
-    bpy.ops.transform.rotate(value=math.radians(delta_y),orient_axis='Y',orient_type='VIEW')
-    bpy.ops.transform.rotate(value=math.radians(delta_x),orient_axis='X',orient_type='VIEW')
-    
+        print("load pose")
+        # Check if the rotate.txt file exists
+        if os.path.exists(rotate_path):
+            deltas = np.loadtxt(rotate_path)
+            delta_z, delta_x, delta_y = deltas
+        else:
+            print(f"rotate.txt not found at {rotate_path}. Using default values.")
+            delta_z = 0
+            delta_x = 0
+            delta_y = 0
+
+    bpy.ops.transform.rotate(value=math.radians(delta_z), orient_axis='Z', orient_type='VIEW')
+    bpy.ops.transform.rotate(value=math.radians(delta_y), orient_axis='Y', orient_type='VIEW')
+    bpy.ops.transform.rotate(value=math.radians(delta_x), orient_axis='X', orient_type='VIEW')
+
     bpy.ops.object.select_all(action='DESELECT')
-    
+
     VIEWS = VIEWS + EXTRA_VIEWS
     for j in range(len(VIEWS)):
-        view = f"{viewidx:03d}"+ VIEWS[j]
+        view = f"{viewidx:03d}" + VIEWS[j]
         # set camera
-        cam = bpy.data.objects[f'Camera.{j+1:03d}']
+        cam = bpy.data.objects[f'Camera.{j + 1:03d}']
         location, rotation = cam.matrix_world.decompose()[0:2]
-        
+
         print(j, rotation)
-        
+
         cam_pose = bproc.math.build_transformation_mat(location, rotation.to_matrix())
         bproc.camera.set_resolution(args.resolution, args.resolution)
         bproc.camera.add_camera_pose(cam_pose)
@@ -402,14 +424,14 @@ def save_images(object_file: str, viewidx: int) -> None:
         # print(np.linalg.inv(cam_pose))  # the same
         # print(RT)
         # idx = 4*i+j
-        RT_path = os.path.join(args.output_folder, object_uid, view+"_RT.txt")
-        K_path = os.path.join(args.output_folder, object_uid, view+"_K.txt")
+        RT_path = os.path.join(args.output_folder, object_uid, view + "_RT.txt")
+        K_path = os.path.join(args.output_folder, object_uid, view + "_K.txt")
         # NT_path = os.path.join(args.output_folder, object_uid, f"{i:03d}_NT.npy")
         K = get_calibration_matrix_K_from_blender()
         np.savetxt(RT_path, RT)
         # np.savetxt(K_path, K)
 
-    
+
     # activate normal and depth rendering
     # must be here
     bproc.renderer.enable_normals_output()
@@ -419,37 +441,52 @@ def save_images(object_file: str, viewidx: int) -> None:
 
     for j in range(len(VIEWS)):
         index = j
-        
-        view = f"{viewidx:03d}"+ VIEWS[j]
-        
+
+        view = f"{viewidx:03d}" + VIEWS[j]
+
         # Nomralizes depth maps
         depth_map = data['depth'][index]
         depth_max = np.max(depth_map)
-        valid_mask = depth_map!=depth_max
-        invalid_mask = depth_map==depth_max
+        valid_mask = depth_map != depth_max
+        invalid_mask = depth_map == depth_max
+
         depth_map[invalid_mask] = 0
-        
+
         depth_map = np.uint16((depth_map / 10) * 65535)
 
-        normal_map = data['normals'][index]*255
+        normal_map = data['normals'][index] * 255
 
-        valid_mask = valid_mask.astype(np.int8)*255
+        valid_mask = valid_mask.astype(np.int8) * 255
+        # valid_mask = apply_threshold(valid_mask)
 
         color_map = data['colors'][index]
         color_map = np.concatenate([color_map, valid_mask[:, :, None]], axis=-1)
 
         normal_map = np.concatenate([normal_map, valid_mask[:, :, None]], axis=-1)
 
+        # depth_map = np.concatenate([depth_map, valid_mask[:, :, None]], axis=-1)
+
         Image.fromarray(color_map.astype(np.uint8)).save(
-        '{}/{}/rgb_{}.webp'.format(args.output_folder, object_uid, view), "webp", quality=100)
-        
+            '{}/{}/rgb_{}.png'.format(args.output_folder, object_uid, view), format="PNG", quality=100)
+
         Image.fromarray(normal_map.astype(np.uint8)).save(
-        '{}/{}/normals_{}.webp'.format(args.output_folder, object_uid, view), "webp", quality=100)
-        
+            '{}/{}/normals_{}.png'.format(args.output_folder, object_uid, view), format="PNG", quality=100)
+
+        Image.fromarray(depth_map).save(
+            '{}/{}/depth_{}.png'.format(args.output_folder, object_uid, view), format="PNG", quality=100)
+
         # cv2.imwrite('{}/{}/rgb_{}.png'.format(args.output_folder, object_uid, view), color_map)
         # cv2.imwrite('{}/{}/depth_{}.png'.format(args.output_folder,object_uid, view), depth_map)
         # cv2.imwrite('{}/{}/normals_{}.png'.format(args.output_folder,object_uid, view), normal_map)
         # cv2.imwrite('{}/{}/mask_{}.png'.format(args.output_folder,object_uid, view), valid_mask)
+    bucket_name = "multiview-renders"
+    version_name = "persp_13views"
+    uid_folder_path = os.path.join(base_output_folder, subdir, object_uid)
+    password = os.getenv("GCLOUD_PASSWORD")
+
+    command = f"gcloud alpha storage cp -r {uid_folder_path} gs://{bucket_name}/{version_name}/{subdir}/"
+    # subprocess.run(["gsutil", "cp", "-r", uid_folder_path, f"gs://{bucket_name}/{version_name}/{subdir}/"])
+
 
 
 def download_object(object_url: str) -> str:
@@ -466,6 +503,7 @@ def download_object(object_url: str) -> str:
     local_path = os.path.abspath(local_path)
     return local_path
 
+
 if __name__ == "__main__":
     # try:
     start_i = time.time()
@@ -473,7 +511,7 @@ if __name__ == "__main__":
         local_path = download_object(args.object_path)
     else:
         local_path = args.object_path
-        
+
     if not os.path.exists(local_path):
         print("object does not exists")
     else:
@@ -482,7 +520,7 @@ if __name__ == "__main__":
         except Exception as e:
             print("Failed to render", args.object_path)
             print(e)
-        
+
     end_i = time.time()
     print("Finished", local_path, "in", end_i - start_i, "seconds")
     # delete the object if it was downloaded

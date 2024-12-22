@@ -1,0 +1,37 @@
+pretrained_model_name_or_path: './ckpts'
+pretrained_unet_path: './ckpts/unet'
+revision: null
+
+pred_type: 'joint_color_normal'
+validation_batch_size: 1
+dataloader_num_workers: 64
+
+local_rank: -1
+
+pipe_kwargs:
+  camera_embedding_type: 'e_de_da_sincos'
+  num_views: 6
+  pred_type: 'joint_color_normal'
+
+validation_guidance_scales: [2.0]
+pipe_validation_kwargs:
+  eta: 1.0
+validation_grid_nrow: 6
+
+unet_from_pretrained_kwargs:
+  camera_embedding_type: 'e_de_da_sincos'
+  projection_class_embeddings_input_dim: 14
+  num_views: 6
+  sample_size: 32
+  cd_attention_mid: true
+  zero_init_conv_in: false
+  zero_init_camera_projection: false
+  multiview_attention: true
+  sparse_mv_attention: false
+  mvcd_attention: false
+
+num_views: 6
+camera_embedding_type: 'e_de_da_sincos'
+load_task: true
+
+enable_xformers_memory_efficient_attention: False

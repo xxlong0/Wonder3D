@@ -31,23 +31,17 @@ import diffusers
 from diffusers import AutoencoderKL, DDPMScheduler, DDIMScheduler, StableDiffusionPipeline
 from diffusers.optimization import get_scheduler
 from diffusers.training_utils import EMAModel
-from diffusers.utils import check_min_version, deprecate, is_wandb_available
-from diffusers.utils.import_utils import is_xformers_available
 
 from tqdm.auto import tqdm
-from transformers import CLIPTextModel, CLIPTokenizer
 from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
-from mvdiffusion.models.unet_mv2d_condition import UNetMV2DConditionModel
+from mv_diffusion_30.models.unet_mv2d_condition import UNetMV2DConditionModel
 
-from mvdiffusion.data.objaverse_dataset import ObjaverseDataset as MVDiffusionDataset
+from mv_diffusion_30.data.objaverse_dataset import ObjaverseDataset as MVDiffusionDataset
 
-from mvdiffusion.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePipeline
+from mv_diffusion_30.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePipeline
 
 from einops import rearrange
-
-import time
-import pdb
 
 logger = get_logger(__name__, log_level="INFO")
 
@@ -164,7 +158,8 @@ def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg:
             # B*Nv images
             for guidance_scale in cfg.validation_guidance_scales:
                 out = pipeline(
-                    imgs_in, camera_task_embeddings, generator=generator, guidance_scale=guidance_scale, output_type='pt', num_images_per_prompt=1, **cfg.pipe_validation_kwargs
+                    imgs_in, camera_task_embeddings, generator=generator, guidance_scale=guidance_scale, output_type='pt', num_images_per_prompt=1, \
+                    height=imgs_in.shape[1], width=imgs_in.shape[2], **cfg.pipe_validation_kwargs
                 ).images
                 shape = out.shape
                 out0, out1 = out[:shape[0]//2], out[shape[0]//2:]
@@ -290,20 +285,6 @@ def main(
                     # print("trainable: ", params)
                     params.requires_grad = True                
 
-    if cfg.enable_xformers_memory_efficient_attention:
-        if is_xformers_available():
-            import xformers
-
-            xformers_version = version.parse(xformers.__version__)
-            if xformers_version == version.parse("0.0.16"):
-                logger.warn(
-                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
-                )
-            unet.enable_xformers_memory_efficient_attention()
-            print("use xformers to speed up")
-        else:
-            raise ValueError("xformers is not available. Make sure it is installed correctly")
-        
     # `accelerate` 0.16.0 will have better support for customized saving
     if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
         # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
@@ -391,22 +372,41 @@ def main(
     train_dataset = MVDiffusionDataset(
         **cfg.train_dataset
     )
-    validation_dataset = MVDiffusionDataset(
+    cfg.validation_dataset.pred_ortho, cfg.validation_dataset.pred_persp = True, False
+    cfg.validation_train_dataset.pred_ortho, cfg.validation_train_dataset.pred_persp = True, False
+    validation_dataset_ortho = MVDiffusionDataset(
         **cfg.validation_dataset
     )
-    validation_train_dataset = MVDiffusionDataset(
+    validation_train_dataset_ortho = MVDiffusionDataset(
         **cfg.validation_train_dataset
     )
 
+    cfg.validation_dataset.pred_ortho, cfg.validation_dataset.pred_persp = False, True
+    cfg.validation_train_dataset.pred_ortho, cfg.validation_train_dataset.pred_persp = False, True
+    validation_dataset_persp = MVDiffusionDataset(
+        **cfg.validation_dataset
+    )
+    validation_train_dataset_persp = MVDiffusionDataset(
+        **cfg.validation_train_dataset
+    )
+    # print(validation_dataset_ortho.pred_ortho, validation_dataset_ortho.pred_persp, validation_train_dataset_persp.pred_ortho, validation_train_dataset_persp.pred_persp, validation_dataset_persp.root_dir_persp)
     # DataLoaders creation:
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size=cfg.train_batch_size, shuffle=True, num_workers=cfg.dataloader_num_workers,
     )
-    validation_dataloader = torch.utils.data.DataLoader(
-        validation_dataset, batch_size=cfg.validation_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
+
+    validation_dataloader_ortho = torch.utils.data.DataLoader(
+        validation_dataset_ortho, batch_size=cfg.validation_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
     )
-    validation_train_dataloader = torch.utils.data.DataLoader(
-        validation_train_dataset, batch_size=cfg.validation_train_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
+    validation_dataloader_persp = torch.utils.data.DataLoader(
+        validation_dataset_persp, batch_size=cfg.validation_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
+    )
+
+    validation_train_dataloader_ortho = torch.utils.data.DataLoader(
+        validation_train_dataset_ortho, batch_size=cfg.validation_train_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
+    )
+    validation_train_dataloader_persp = torch.utils.data.DataLoader(
+        validation_train_dataset_persp, batch_size=cfg.validation_train_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
     )
 
     # Prepare everything with our `accelerator`.
@@ -679,6 +679,7 @@ def main(
 
                 # Backpropagate
                 accelerator.backward(loss)
+
                 if accelerator.sync_gradients and cfg.max_grad_norm is not None:
                     accelerator.clip_grad_norm_(unet.parameters(), cfg.max_grad_norm)
                 optimizer.step()
@@ -711,7 +712,7 @@ def main(
                             ema_unet.store(unet.parameters())
                             ema_unet.copy_to(unet.parameters())
                         log_validation(
-                            validation_dataloader,
+                            validation_dataloader_ortho,
                             vae,
                             feature_extractor,
                             image_encoder,
@@ -720,11 +721,39 @@ def main(
                             accelerator,
                             weight_dtype,
                             global_step,
-                            'validation',
+                            'validation_ortho',
+                            vis_dir
+                        )
+
+                        log_validation(
+                            validation_dataloader_persp,
+                            vae,
+                            feature_extractor,
+                            image_encoder,
+                            unet,
+                            cfg,
+                            accelerator,
+                            weight_dtype,
+                            global_step,
+                            'validation_persp',
+                            vis_dir
+                        )
+
+                        log_validation(
+                            validation_train_dataloader_ortho,
+                            vae,
+                            feature_extractor,
+                            image_encoder,
+                            unet,
+                            cfg,
+                            accelerator,
+                            weight_dtype,
+                            global_step,
+                            'validation_train_ortho',
                             vis_dir
                         )
                         log_validation(
-                            validation_train_dataloader,
+                            validation_train_dataloader_persp,
                             vae,
                             feature_extractor,
                             image_encoder,
@@ -733,9 +762,9 @@ def main(
                             accelerator,
                             weight_dtype,
                             global_step,
-                            'validation_train',
+                            'validation_train_persp',
                             vis_dir
-                        )                       
+                        )
                         if cfg.use_ema:
                             # Switch back to the original UNet parameters.
                             ema_unet.restore(unet.parameters())                        

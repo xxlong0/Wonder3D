@@ -1,0 +1,12 @@
+pretrained_model_name_or_path: "botp/stable-diffusion-v1-5"
+controlnet_model_name_or_path: 'ckpts/mv_controlnet'
+revision: null
+
+validation_batch_size: 1
+dataloader_num_workers: 1
+
+validation_guidance_scales: [3.0]
+pipe_validation_kwargs:
+  eta: 1.0
+
+num_views: 4

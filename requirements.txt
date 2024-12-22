@@ -1,8 +1,8 @@
---extra-index-url https://download.pytorch.org/whl/cu117
-torch==1.13.1
-torchvision==0.14.1
-diffusers[torch]==0.19.3
-xformers==0.0.16
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch==2.4.1
+torchvision
+diffusers[torch]==0.30.0
 transformers>=4.25.1
 bitsandbytes==0.35.4
 decord==0.6.0
@@ -12,7 +12,7 @@ nerfacc==0.3.3
 trimesh==3.9.8
 pyhocon==0.3.57
 icecream==2.1.0
-PyMCubes==0.1.2
+# PyMCubes==0.1.2
 accelerate
 modelcards
 einops
@@ -29,3 +29,16 @@ tensorboard
 rembg
 segment_anything
 gradio==3.50.2
+mosaicml-streaming
+onnxruntime_gpu==1.17.0
+# onnxruntime_gpu @ https://pkgs.dev.azure.com/onnxruntime/2a773b67-e88b-4c7f-9fc0-87d31fea8ef2/_packaging/7fa31e42-5da1-4e84-a664-f2b4129c7d45/pypi/download/onnxruntime-gpu/1.17/onnxruntime_gpu-1.17.0-cp310-cp310-manylinux_2_28_x86_64.whl
+pyrender
+jaxtyping
+pymeshlab
+cholespy
+torch-scatter
+git+https://github.com/facebookresearch/pytorch3d.git@stable
+git+https://github.com/NVlabs/nvdiffrast.git
+open3d
+fire
+comet_ml
