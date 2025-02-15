@@ -53,7 +53,7 @@ accelerate launch --config_file 8gpu.yaml train_mvdiffusion_mixed.py --config co
 accelerate launch --config_file 8gpu.yaml train_mvdiffusion_mixed.py --config configs/train/stage1-mixed-6views-image-normal.yaml
 
 # stage 3:
-accelerate launch --config_file 8gpu.yaml train_mvdiffusion_joint_stage3.py --config configs/train/stage3-joint-6views-image-normal.yaml
+accelerate launch --config_file 8gpu.yaml train_mvdiffusion_joint.py --config configs/train/stage3-joint-6views-image-normal.yaml
 ```
 
 To train our multi-view enhancement module:
